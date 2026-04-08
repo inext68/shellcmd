@@ -1,0 +1,8 @@
+Host *
+    User root
+    Port 22
+
+    UserKnownHostsFile /var/www/glpi/plugins/tcinvtools/scripts/TCInventory/.ssh/known_hosts
+    StrictHostKeyChecking accept-new
+    RequestTTY no
+    LogLevel ERROR
