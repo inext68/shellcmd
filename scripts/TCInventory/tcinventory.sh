@@ -98,7 +98,6 @@ num_to_ip() {
 }
 
 
-
 # Pulizia dei file di output
 > "$OUTPUT_FILE_10ZiG_INV"
 > "$OUTPUT_FILE_Axel_INV"
@@ -145,6 +144,26 @@ done < "$IP_RANGES_FILE_INV"
 
 while IFS= read -r ip; do
     echo "Eseguendo comando SSH per $ip"
+
+if [ ! -d $(pwd)/.ssh ]; then
+  mkdir -p $(pwd)/.ssh"
+  chmod 700 $(pwd)/.ssh"
+  touch $(pwd)/.ssh/known_hosts
+  
+  echo "directory .ssh creata";
+else 
+  echo "directory .ssh non creata" ;  
+fi
+
+if [ ! -d $(pwd)/.gnupg ]; then
+  mkdir -p $(pwd)/.gnupg"
+  chmod 700 $(pwd)/.gnupg"
+  
+  echo "directory .gnupg creata";
+else 
+  echo "directory .gnupg non creata" ;  
+fi
+
     sshpass -p"$pass" ssh -T -o UserKnownHostsFile=$(pwd)/.ssh/known_hosts -o StrictHostKeyChecking=no root@"$ip"  << REMCODE
 
 ##      ssh -T -F $ROOT_PATH/ssh_config root@$ip <<REMCODE
