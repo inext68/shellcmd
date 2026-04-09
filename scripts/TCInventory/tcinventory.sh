@@ -9,6 +9,8 @@ GLPI_CONFIG_DIR="${GLPI_CONFIG_DIR:-}"
 GLPI_VAR_DIR="${GLPI_VAR_DIR:-}"
 GLPI_LOG_DIR="${GLPI_LOG_DIR:-}"
 
+
+
 ## echo "GLPI_ROOT_DIR=$GLPI_ROOT_DIR"
 ## echo "GLPI_PUBLIC_DIR=$GLPI_PUBLIC_DIR"
 ## echo "GLPI_CONFIG_DIR=$GLPI_CONFIG_DIR"
@@ -23,7 +25,8 @@ fi
 
 IP_TO_INV=$1
 
-ROOT_PATH="/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/"
+## ROOT_PATH="/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/"
+ROOT_PATH=$(pwd)
 cd $ROOT_PATH
 
 #CHECK if .ssh exist
