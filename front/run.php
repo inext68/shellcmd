@@ -120,7 +120,7 @@ button:hover{background:#2c2c2c;color:#fff}
 $gnupg_dir = getcwd();
 echo $gnupg_dir;
 
-$path_tmp = dirname(__DIR__, 2);
+$path_tmp = dirname(__DIR__, 1);
 echo $path_tmp;
 
 
