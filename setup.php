@@ -1,56 +1,56 @@
 <?php
 
-define('PLUGIN_TCINVTOOLS_VERSION', '1.0.0');
-define('PLUGIN_TCINVTOOLS_MIN_GLPI', '11.0.0');
+define('PLUGIN_SHELLCMD_VERSION', '1.0.0');
+define('PLUGIN_SHELLCMD_MIN_GLPI', '11.0.0');
 
 function plugin_init_tcinvtools() {
    global $PLUGIN_HOOKS;
 
-   $PLUGIN_HOOKS['csrf_compliant']['tcinvtools'] = true;
+   $PLUGIN_HOOKS['csrf_compliant']['shellcmd'] = true;
 
    // Menu Tools (opzionale, utile per test/debug)
-   $PLUGIN_HOOKS['menu_toadd']['tcinvtools'] = ['tools' => 'PluginTcinvtoolsMenu'];
+   $PLUGIN_HOOKS['menu_toadd']['shellcmd'] = ['tools' => 'PluginShellcmdMenu'];
 
    // Registra la classe che aggiunge TAB agli asset
    // addtabon: meccanismo standard per aggiungere tab su item core [3](https://glpi-developer-documentation.readthedocs.io/en/master/plugins/tips.html)
    Plugin::registerClass(
-      'PluginTcinvtoolsRunner',
+      'PluginShellcmdRunner',
       ['addtabon' => ['Computer', 'NetworkEquipment']]
    );
 }
 
 function plugin_version_tcinvtools() {
    return [
-      'name'         => 'TCINV Tools (Script Runner)',
-      'version'      => PLUGIN_TCINVTOOLS_VERSION,
+      'name'         => 'SHELL CMD (Script Runner)',
+      'version'      => PLUGIN_SHELLCMD_VERSION,
       'author'       => 'Mariano Benzi',
       'license'      => 'GPLv2',
-      'homepage'     => 'https://intranet.finstral.org/',
+      'homepage'     => 'https://www.benzimariano.altervista.org',
       'requirements' => [
          'glpi' => [
-            'min' => PLUGIN_TCINVTOOLS_MIN_GLPI
+            'min' => PLUGIN_SHELLCMD_MIN_GLPI
          ]
       ]
    ];
 }
 
-function plugin_tcinvtools_check_prerequisites() {
+function plugin_shellcmd_check_prerequisites() {
    // serve proc_open per streaming realtime
    $disabled = ini_get('disable_functions') ?: '';
    if (stripos($disabled, 'proc_open') !== false) {
-      echo "TCINV Tools richiede proc_open() abilitato (disable_functions lo blocca).";
+      echo "SHELL_cmd richiede proc_open() abilitato (disable_functions lo blocca).";
       return false;
    }
    return true;
 }
 
-function plugin_tcinvtools_check_config($verbose = false) {
+function plugin_shellcmd_check_config($verbose = false) {
    return true;
 }
 /**
  * Installazione plugin (chiamata da GLPI quando clicchi "Installa")
  */
-function plugin_tcinvtools_install() {
+function plugin_shellcmd_install() {
    // Se un domani ti servono tabelle, qui useremo Migration()
    return true;
 }
@@ -58,7 +58,7 @@ function plugin_tcinvtools_install() {
 /**
  * Disinstallazione plugin (chiamata da GLPI quando clicchi "Disinstalla")
  */
-function plugin_tcinvtools_uninstall() {
+function plugin_shellcmd_uninstall() {
    // Qui eventualmente si rimuovono tabelle/config create dal plugin
    return true;
 }

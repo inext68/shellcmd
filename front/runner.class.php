@@ -1,6 +1,6 @@
 <?php
 
-class PluginTcinvtoolsRunner extends CommonGLPI {
+class PluginShellcmdRunner extends CommonGLPI {
 
    // MVP: usa diritto config; in seguito possiamo creare un diritto dedicato plugin.
    public static $rightname = 'config';
@@ -17,7 +17,7 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
 
       $type = $item::getType();
       if (in_array($type, ['Computer', 'NetworkEquipment'], true)) {
-         return self::createTabEntry(__('TCINV Tools', 'tcinvtools'));
+         return self::createTabEntry(__('SHELL cmd', 'shellcmd'));
       }
 
       return '';
@@ -50,7 +50,7 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
       }
 
       // URL pagina esecuzione streaming (front/run.php)
-      $actionUrl = Plugin::getWebDir('tcinvtools') . "/front/run.php";
+      $actionUrl = Plugin::getWebDir('shellcmd') . "/front/run.php";
 
       echo "<form method='get' action='" . Html::clean($actionUrl) . "'>";
       echo "<input type='hidden' name='action' value='run'>";
@@ -98,8 +98,8 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
     */
    public static function getScriptsWhitelist(): array {
       return [
-         'Test'    => '/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/test.sh',
-         'TCINV'    => '/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/tcinventory.sh',
+         'Test'    => '/var/www/html/glpi/plugins/shellcmd/scripts/TCInventory/test.sh',
+         'TCINV'    => '/var/www/html/glpi/plugins/shellcmd/scripts/TCInventory/tcinventory.sh',
          'PING'  => '/usr/bin/ping -c 10',
          'PINGPLUS' => '/usr/local/bin/PINGPLUS',
       ];

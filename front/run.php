@@ -19,10 +19,10 @@ $action = $_GET['action'] ?? '';
 
 // Pagina “di cortesia” se aperta dal menu Tools
 if ($action !== 'run') {
-   Html::header(__('TCINV Tools', 'tcinvtools'), $_SERVER['PHP_SELF'], "tools");
+   Html::header(__('Shell CMD', 'shellcmd'), $_SERVER['PHP_SELF'], "tools");
 
    echo "<div class='center'>";
-   echo "<h2>" . htmlescape(__('TCINV Tools', 'tcinvtools')) . "</h2>";
+   echo "<h2>" . htmlescape(__('Shell CMD', 'shellcmd')) . "</h2>";
    echo "<p>" . htmlescape(__('Questo plugin è pensato per l’uso dal TAB degli asset.', 'tcinvtools')) . "</p>";
    echo "</div>";
 
@@ -111,11 +111,11 @@ button:hover{background:#2c2c2c;color:#fff}
 <body>
 
 <div id="toolbar">
-  <button id="btnBack"><?php echo htmlescape(__('Torna all’asset', 'tcinvtools')); ?></button>
+  <button id="btnBack"><?php echo htmlescape(__('Torna all’asset', 'shellcmd')); ?></button>
   <span style="color:#7aa"><?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'tcinvtools')); ?> <?php echo htmlescape($ip); ?></span>
 </div>
 
-<div id="term"><span class="hl"><?php echo htmlescape(__('Esecuzione', 'tcinvtools')); ?> <?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'tcinvtools')); ?> <?php echo htmlescape($ip); ?>…</span>
+<div id="term"><span class="hl"><?php echo htmlescape(__('Esecuzione', 'shellcmd')); ?> <?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'tcinvtools')); ?> <?php echo htmlescape($ip); ?>…</span>
 
 <?php
 // “primer” per sbloccare buffering di alcuni proxy/browser
@@ -176,7 +176,7 @@ if (!is_resource($proc)) {
    proc_close($proc);
 }
 
-echo "\n\n<span class='hl'>" . htmlescape(__('Operazione completata.', 'tcinvtools')) . "</span>\n";
+echo "\n\n<span class='hl'>" . htmlescape(__('Operazione completata.', 'shellcmd')) . "</span>\n";
 flush();
 ?>
 </div>

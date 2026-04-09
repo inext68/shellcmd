@@ -1,15 +1,15 @@
 <?php
 
-class PluginTcinvtoolsMenu extends CommonGLPI {
+class PluginShellcmdMenu extends CommonGLPI {
 
    public static $rightname = 'config'; // MVP: solo admin
 
    static function getMenuName() {
-      return __('TCINV Tools', 'tcinvtools');
+      return __('Shell CMD', 'shellcmd');
    }
 
    static function getMenuContent() {
-      $url = Plugin::getWebDir('tcinvtools') . '/front/run.php';
+      $url = Plugin::getWebDir('shellcmd') . '/front/run.php';
       return [
          'title' => self::getMenuName(),
          'page'  => $url,

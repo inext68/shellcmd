@@ -1,6 +1,6 @@
 <?php
 
-class PluginTcinvtoolsRunner extends CommonGLPI {
+class PluginShellcmdRunner extends CommonGLPI {
 
 
    // MVP: usa diritto "config" (admin). In seguito possiamo creare un diritto dedicato al plugin.
@@ -18,7 +18,7 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
 
       $type = $item::getType();
       if (in_array($type, ['Computer', 'NetworkEquipment'], true)) {
-         return self::createTabEntry(__('TCINV Tools', 'tcinvtools'));
+         return self::createTabEntry(__('Shell CMD', 'shellcmd'));
       }
 
       return '';
@@ -52,7 +52,7 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
       }
 
       // URL pagina esecuzione streaming (front/run.php)
-      $actionUrl = Plugin::getWebDir('tcinvtools') . "/front/run.php";
+      $actionUrl = Plugin::getWebDir('shelltool') . "/front/run.php";
 
       echo "<form method='get' action='" . htmlescape($actionUrl) . "'>";
       echo "<input type='hidden' name='action' value='run'>";
@@ -75,7 +75,7 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
       foreach ($scripts as $key => $path) {
          $k = htmlescape($key);
     //     $p = htmlescape($path);
-//         echo "<option value='{$k}'>{$k} ({$p})</option>";
+    //     echo "<option value='{$k}'>{$k} ({$p})</option>";
          echo "<option value='{$k}'>{$k}</option>";
 
 
@@ -105,8 +105,8 @@ class PluginTcinvtoolsRunner extends CommonGLPI {
 	 $BASEDIR='/var/www/html/glpi/plugins';
     return [
 //         'Test'    => __DIR__.'/test.php',
-         'Inventario TC'    => $BASEDIR.'/tcinvtools/scripts/TCInventory/tcinventory.sh',
-         'PING'   => $BASEDIR.'/tcinvtools/scripts/ping-exe/launch_ping.sh',
+         'Inventario TC'    => $BASEDIR.'/shellcmd/scripts/TCInventory/tcinventory.sh',
+         'PING'   => $BASEDIR.'/shellcmd/scripts/ping-exe/launch_ping.sh',
 //         'PINGPLUS' => '/usr/local/bin/PINGPLUS',
       ];
    }
