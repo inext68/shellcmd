@@ -52,7 +52,7 @@ class PluginShellcmdRunner extends CommonGLPI {
       }
 
       // URL pagina esecuzione streaming (front/run.php)
-      $actionUrl = Plugin::getWebDir('shelltool') . "/front/run.php";
+      $actionUrl = Plugin::getWebDir('shellcmd') . "/front/run.php";
 
       echo "<form method='get' action='" . htmlescape($actionUrl) . "'>";
       echo "<input type='hidden' name='action' value='run'>";
