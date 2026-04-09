@@ -3,7 +3,7 @@
 define('PLUGIN_SHELLCMD_VERSION', '1.0.0');
 define('PLUGIN_SHELLCMD_MIN_GLPI', '11.0.0');
 
-function plugin_init_tcinvtools() {
+function plugin_init_shellcmd() {
    global $PLUGIN_HOOKS;
 
    $PLUGIN_HOOKS['csrf_compliant']['shellcmd'] = true;
@@ -19,7 +19,7 @@ function plugin_init_tcinvtools() {
    );
 }
 
-function plugin_version_tcinvtools() {
+function plugin_version_shellcmd() {
    return [
       'name'         => 'SHELL CMD (Script Runner)',
       'version'      => PLUGIN_SHELLCMD_VERSION,
