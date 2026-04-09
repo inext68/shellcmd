@@ -8,6 +8,7 @@ GLPI_PUBLIC_DIR="${GLPI_PUBLIC_DIR:-}"
 GLPI_CONFIG_DIR="${GLPI_CONFIG_DIR:-}"
 GLPI_VAR_DIR="${GLPI_VAR_DIR:-}"
 GLPI_LOG_DIR="${GLPI_LOG_DIR:-}"
+GLPI_PLUGIN_DIR="${GLPI_PLUGIN_DIR:-}"
 
 
 
@@ -16,6 +17,7 @@ GLPI_LOG_DIR="${GLPI_LOG_DIR:-}"
 ## echo "GLPI_CONFIG_DIR=$GLPI_CONFIG_DIR"
 ## echo "GLPI_VAR_DIR=$GLPI_VAR_DIR"
 ## echo "GLPI_LOG_DIR=$GLPI_LOG_DIR"
+echo "GLPI_PLUGIN_DIR=$GLPI_PLUGIN_DIR"
 
 
 if [ $# -eq 0 ]; then
@@ -35,6 +37,9 @@ if [ ! -d $ROOT_PATH/.ssh ]; then
   # Crea la directory
   mkdir -p $ROOT_PATH/.ssh"
   chmod 700 $ROOT_PATH/.ssh"
+  echo "directory .ssh creata";
+else 
+  echo "directory .ssh non creata" ;  
 fi
 if [ ! -d $ROOT_PATH/.gnupg ]; then
   # Crea la directory
