@@ -31,15 +31,15 @@ cd $ROOT_PATH
 
 #CHECK if .ssh exist
 
-if [ ! -d "$ROOT_PATH"/.ssh ]; then
+if [ ! -d $ROOT_PATH/.ssh ]; then
   # Crea la directory
-  mkdir -p $ROOT_PATH"/.ssh"
-  chmod 700 $ROOT_PATH"/.ssh"
+  mkdir -p $ROOT_PATH/.ssh"
+  chmod 700 $ROOT_PATH/.ssh"
 fi
-if [ ! -d "$ROOT_PATH"/.gnupg ]; then
+if [ ! -d $ROOT_PATH/.gnupg ]; then
   # Crea la directory
-  mkdir -p $ROOT_PATH"/.gnupg"
-  chmod 700 $ROOT_PATH"/.gnupg"
+  mkdir -p $ROOT_PATH/.gnupg"
+  chmod 700 $ROOT_PATH/.gnupg"
 fi
 
 
