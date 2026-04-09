@@ -119,7 +119,8 @@ button:hover{background:#2c2c2c;color:#fff}
 <?php 
 $gnupg_dir = getcwd();
 echo $gnupg_dir
-pause
+
+sleep (10);
 
 ?>   
 
