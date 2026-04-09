@@ -8,16 +8,12 @@ GLPI_PUBLIC_DIR="${GLPI_PUBLIC_DIR:-}"
 GLPI_CONFIG_DIR="${GLPI_CONFIG_DIR:-}"
 GLPI_VAR_DIR="${GLPI_VAR_DIR:-}"
 GLPI_LOG_DIR="${GLPI_LOG_DIR:-}"
-GLPI_PLUGIN_DIR="${GLPI_PLUGIN_DIR:-}"
-
-
 
 ## echo "GLPI_ROOT_DIR=$GLPI_ROOT_DIR"
 ## echo "GLPI_PUBLIC_DIR=$GLPI_PUBLIC_DIR"
 ## echo "GLPI_CONFIG_DIR=$GLPI_CONFIG_DIR"
 ## echo "GLPI_VAR_DIR=$GLPI_VAR_DIR"
 ## echo "GLPI_LOG_DIR=$GLPI_LOG_DIR"
-echo "GLPI_PLUGIN_DIR=$GLPI_PLUGIN_DIR"
 
 
 if [ $# -eq 0 ]; then
@@ -27,33 +23,18 @@ fi
 
 IP_TO_INV=$1
 
-## ROOT_PATH="/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/"
-ROOT_PATH=$(pwd)
+ROOT_PATH="/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/"
 cd $ROOT_PATH
 
 #CHECK if .ssh exist
 
-if [ ! -d $ROOT_PATH/.ssh ]; then
+if [ ! -d "$ROOT_PATH".ssh ]; then
   # Crea la directory
-  mkdir -p $ROOT_PATH/.ssh"
-  chmod 700 $ROOT_PATH/.ssh"
-  echo "directory .ssh creata";
-else 
-  echo "directory .ssh non creata" ;  
+  mkdir -p $ROOT_PATH".ssh"
+  chmod 700 $ROOT_PATH".ssh"
 fi
-if [ ! -d $ROOT_PATH/.gnupg ]; then
-  # Crea la directory
-  mkdir -p $ROOT_PATH/.gnupg"
-  chmod 700 $ROOT_PATH/.gnupg"
-fi
-if [ ! $ROOT_PATH/.ssh/known_hosts ]; then
-  # Crea la directory
-  touch $ROOT_PATH/.ssh/known_hosts
-  chmod 700 $ROOT_PATH/.ssh/known_hosts
-  echo "file known_hosts ok";
-else 
-  echo "directory .ssh non creata" ;  
-fi
+
+
 
 IP_RANGES_FILE_INV="./ip_ranges/ranges_ip_INV.txt"
 OUTPUT_FILE_10ZiG_INV="./results/10ZiG_INV.txt"
@@ -62,10 +43,12 @@ echo "$IP_TO_INV $IP_TO_INV" > $IP_RANGES_FILE_INV
 
 
 # Variabili per il comando sshpass
-pass=$(echo "1234" | gpg --batch -d -q --passphrase-fd 0 .spwd);		# Sostituisci con la password corretta
-DESTPATH="/boot/inv"								# Sostituisci con il percorso di destinazione remoto
-GETPATH="http://itassets.finstral.com:60001/glpi/plugins/tcinvtools/scripts/TCInventory"		# Sostituisci con il percorso HTTP per il download dello script
+pass=$(echo "1234" | gpg --batch -d -q --passphrase-fd 0 .spwd);                # Sostituisci con la password corretta
+DESTPATH="/boot/inv"                                                            # Sostituisci con il percorso di destinazione remoto
+GETPATH="http://itassets.finstral.com:60001/glpi/plugins/tcinvtools/scripts/TCInventory"                # Sostituisci con il percorso HTTP per il download dello script
 INVURL="http://itassets.finstral.com:60001/glpi/plugins/tcinvtools/scripts/TCInventory"
+
+
 
 # Funzione per verificare se un IP è valido
 is_valid_ip() {
@@ -96,6 +79,7 @@ num_to_ip() {
     local num=$1
     echo "$((num >> 24 & 255)).$((num >> 16 & 255)).$((num >> 8 & 255)).$((num & 255))"
 }
+
 
 
 # Pulizia dei file di output
@@ -144,51 +128,29 @@ done < "$IP_RANGES_FILE_INV"
 
 while IFS= read -r ip; do
     echo "Eseguendo comando SSH per $ip"
+##    sshpass -p"$pass" ssh -T -F $ROOT_PATH -o StrictHostKeyChecking=no root@"$ip"  << REMCODE
 
-if [ ! -d $(pwd)/.ssh ]; then
-  mkdir -p $(pwd)/.ssh"
-  chmod 700 $(pwd)/.ssh"
-  touch $(pwd)/.ssh/known_hosts
-  
-  echo "directory .ssh creata";
-else 
-  echo "directory .ssh non creata" ;  
-fi
-
-if [ ! -d $(pwd)/.gnupg ]; then
-  mkdir -p $(pwd)/.gnupg"
-  chmod 700 $(pwd)/.gnupg"
-  
-  echo "directory .gnupg creata";
-else 
-  echo "directory .gnupg non creata" ;  
-fi
-
-    sshpass -p"$pass" ssh -T -o UserKnownHostsFile=$(pwd)/.ssh/known_hosts -o StrictHostKeyChecking=no root@"$ip"  << REMCODE
-
-##      ssh -T -F $ROOT_PATH/ssh_config root@$ip <<REMCODE
+      ssh -T -F $ROOT_PATH/ssh_config root@$ip <<REMCODE
 
 
     cd /
     sleep 1
-if [ ! -d "$DESTPATH" ]; then 
-	mkdir -p "$DESTPATH"
+if [ ! -d "$DESTPATH" ]; then
+        mkdir -p "$DESTPATH"
     fi
     if [ -f "$DESTPATH/agent.exe" ]; then
         rm $DESTPATH/agent.exe
     fi
-	cd $DESTPATH 
-	wget -c $GETPATH/agent.exe
-    sleep 1 
+        cd $DESTPATH
+        wget -c $GETPATH/agent.exe
+    sleep 1
     chmod +x $DESTPATH/agent.exe
     sleep 1
 
     $DESTPATH/agent.exe --server http://itassets.finstral.com:60001/glpi/plugins/glpiinventory/ --format FORMAT_GLPI --tag THINCLIENT_10ZIG --nosoftware  --verbose
 REMCODE
-echo "eseguito Inventario $ip" 
+echo "eseguito Inventario $ip"
 done < "$OUTPUT_FILE_10ZiG_INV"
-
-
 #inventario Thicleint Axel
 while IFS= read -r ip; do
 
@@ -202,18 +164,18 @@ while IFS= read -r ip; do
         Axel_MACADDR=$(curl -s "$source" | awk -F'[<>]' '/<MacAddress>/{print $3}');
         Axel_UUID=$(echo "$Axel_MACADDR" | tr -d ':');
 
-	Axel_IPADDRESS=$(curl -s "$source" | awk -F'[<>]' '/<IPAddress>/{print $3}');
-	if [ -z "$Axel_IPADDRESS" ] ; then
-	Axel_IPADDRESS=$ip
-	fi
+        Axel_IPADDRESS=$(curl -s "$source" | awk -F'[<>]' '/<IPAddress>/{print $3}');
+        if [ -z "$Axel_IPADDRESS" ] ; then
+        Axel_IPADDRESS=$ip
+        fi
 
 
         Name_content=$(curl -s $source);
 echo $Name_content;
-	Axel_IPGATEWAY=$(echo $Axel_IPADDRESS | cut -d'.' -f1-3)."254";
+        Axel_IPGATEWAY=$(echo $Axel_IPADDRESS | cut -d'.' -f1-3)."254";
         Axel_IPSUBNET=$(echo $Axel_IPADDRESS | cut -d'.' -f1-3)."0";
         Axel_FQDN=$(echo "$Name_content" | grep -oP '(?<=<FQDN>).*(?=</FQDN>)');
-	Axel_boot=$(date +%Y-%M-%d" "%T);
+        Axel_boot=$(date +%Y-%M-%d" "%T);
 #        Name_content=$(curl -s $source);
 
         # Verifica se esiste il pattern <name>
@@ -221,20 +183,17 @@ echo $Name_content;
         # Se esiste <name>, estrai il contenuto tra <name> e </name>
           Axel_Nome=$(echo "$Name_content" | grep -oP '(?<=<Name>).*(?=</Name>)')
         echo " <name> $Axel_Nome"
-	fi
+        fi
         # Se <name> non esiste, verifica per <fqdn> e estrai il contenuto tra <fqdn> e </fqdn>
         if $(echo "$Name_content" | grep -q '<FQDN>'); then
           Axel_Nome=$(echo "$Name_content" | grep -oP '(?<=<FQDN>).*(?=</FQDN>)'| cut -d'.' -f1-1)
         echo "<fqdn> $Axel_Nome"
-        
+
 fi
 
-      Axel_NAME="$Axel_Nome" 
+      Axel_NAME="$Axel_Nome"
 echo "$Axel_NAME";
 echo "$Axel_NAME-bjo";
-
-
-
 
 
 echo "{                                                 " > "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
@@ -308,10 +267,12 @@ echo "   \"tag\": \"THINCLIENT_AXEL\"                   " >> "$inventory_path$ip
 echo "}" >> "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
 
 
-echo "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
+# echo "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
 
-sleep 60
+sleep 1
 glpi-injector -v -r -f $inventory_path$ip-$Axel_NAME-$Axel_UUID.json --useragent Fin_TC_Agent --url http://itassets.finstral.com/plugins/glpiinventory
 sleep 1
 done <  "$OUTPUT_FILE_Axel_INV"
 echo >  $IP_RANGES_FILE_INV
+
+

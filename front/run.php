@@ -91,7 +91,9 @@ $env = [
    'LC_ALL'    => 'C',
    'GLPI_ROOT_DIR'   => $glpiRoot ?: '',
    'GLPI_PUBLIC_DIR' => $glpiPublic ?: '',
-];
+
+
+   ];
 
 
 ?><!doctype html>
