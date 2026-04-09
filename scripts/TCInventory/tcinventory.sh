@@ -138,9 +138,9 @@ done < "$IP_RANGES_FILE_INV"
 
 while IFS= read -r ip; do
     echo "Eseguendo comando SSH per $ip"
-##    sshpass -p"$pass" ssh -T -F $ROOT_PATH -o StrictHostKeyChecking=no root@"$ip"  << REMCODE
+    sshpass -p"$pass" ssh -T -F $ROOT_PATH/ssh_config -o StrictHostKeyChecking=no root@"$ip"  << REMCODE
 
-      ssh -T -F $ROOT_PATH/ssh_config root@$ip <<REMCODE
+##      ssh -T -F $ROOT_PATH/ssh_config root@$ip <<REMCODE
 
 
     cd /
