@@ -46,7 +46,14 @@ if [ ! -d $ROOT_PATH/.gnupg ]; then
   mkdir -p $ROOT_PATH/.gnupg"
   chmod 700 $ROOT_PATH/.gnupg"
 fi
-
+if [ ! $ROOT_PATH/.ssh/known_hosts ]; then
+  # Crea la directory
+  touch $ROOT_PATH/.ssh/known_hosts
+  chmod 700 $ROOT_PATH/.ssh/known_hosts
+  echo "file known_hosts ok";
+else 
+  echo "directory .ssh non creata" ;  
+fi
 
 IP_RANGES_FILE_INV="./ip_ranges/ranges_ip_INV.txt"
 OUTPUT_FILE_10ZiG_INV="./results/10ZiG_INV.txt"
