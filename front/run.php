@@ -13,7 +13,7 @@ require_once __DIR__ . '/../inc/runner.class.php';
 
 $glpiRoot   = realpath(dirname(__DIR__, 3));
 $glpiPublic = realpath($glpiRoot . '/public');
-
+// $plugin_root = getcwd();
 
 $action = $_GET['action'] ?? '';
 
@@ -119,6 +119,12 @@ button:hover{background:#2c2c2c;color:#fff}
 <?php 
 $gnupg_dir = getcwd();
 echo $gnupg_dir;
+
+$path_tmp = dirname(__DIR__, 2);
+echo $path_tmp;
+
+
+
 sleep(4);
 
 ?>   
