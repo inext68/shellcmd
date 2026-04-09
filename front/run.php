@@ -117,8 +117,8 @@ button:hover{background:#2c2c2c;color:#fff}
 </div>
 <div id="temp">
 <?php 
-$gnupg_dir=$(pwd)
-echo $gnupg_dir 
+gnupg_dir=$(pwd)
+echo $gnupg_dir
 pause
 
 ?>   
