@@ -282,9 +282,9 @@ echo "   \"tag\": \"THINCLIENT_AXEL\"                   " >> "$inventory_path$ip
 echo "}" >> "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
 
 
-# echo "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
+echo "$inventory_path$ip-$Axel_NAME-$Axel_UUID".json
 
-sleep 1
+sleep 60
 glpi-injector -v -r -f $inventory_path$ip-$Axel_NAME-$Axel_UUID.json --useragent Fin_TC_Agent --url http://itassets.finstral.com/plugins/glpiinventory
 sleep 1
 done <  "$OUTPUT_FILE_Axel_INV"
