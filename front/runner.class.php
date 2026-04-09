@@ -39,7 +39,7 @@ class PluginShellcmdRunner extends CommonGLPI {
       $ips = self::getIPv4FromNetworkPorts($itemtype, $items_id);
 
       echo "<div class='spaced'>";
-      echo "<h3>" . Html::clean(__('Esegui script su IP dell’asset', 'tcinvtools')) . "</h3>";
+      echo "<h3>" . Html::clean(__('Esegui script su IP dell’asset', 'shellcmd')) . "</h3>";
 
       if (empty($ips)) {
          echo "<div class='alert alert-warning'>";
@@ -58,7 +58,7 @@ class PluginShellcmdRunner extends CommonGLPI {
       echo "<input type='hidden' name='items_id' value='" . (int)$items_id . "'>";
 
       // Dropdown IP
-      echo "<p style='margin:10px 0 6px 0;'><b>" . Html::clean(__('IP (IPv4) disponibili:', 'tcinvtools')) . "</b></p>";
+      echo "<p style='margin:10px 0 6px 0;'><b>" . Html::clean(__('IP (IPv4) disponibili:', 'shellcmd')) . "</b></p>";
       echo "<select name='ip' required style='min-width:260px;'>";
       foreach ($ips as $ip) {
          $ipEsc = Html::clean($ip);
@@ -68,7 +68,7 @@ class PluginShellcmdRunner extends CommonGLPI {
 
       // Dropdown Script
       $scripts = self::getScriptsWhitelist();
-      echo "<p style='margin:12px 0 6px 0;'><b>" . Html::clean(__('Script:', 'tcinvtools')) . "</b></p>";
+      echo "<p style='margin:12px 0 6px 0;'><b>" . Html::clean(__('Script:', 'shellcmd')) . "</b></p>";
       echo "<select name='script' required style='min-width:260px;'>";
       foreach ($scripts as $key => $path) {
          $k = Html::clean($key);
@@ -82,7 +82,7 @@ class PluginShellcmdRunner extends CommonGLPI {
       echo "<input type='hidden' name='return' value='" . Html::clean($return) . "'>";
 
       echo "<div style='margin-top:12px;'>";
-      echo "<button class='submit' type='submit'>" . Html::clean(__('Esegui', 'tcinvtools')) . "</button>";
+      echo "<button class='submit' type='submit'>" . Html::clean(__('Esegui', 'shellcmd')) . "</button>";
       echo "</div>";
 
       echo "</form>";
