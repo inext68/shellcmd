@@ -118,9 +118,8 @@ button:hover{background:#2c2c2c;color:#fff}
 <div id="temp">
 <?php 
 $gnupg_dir = getcwd();
-echo $gnupg_dir
-
-sleep(10);
+echo $gnupg_dir;
+sleep(4);
 
 ?>   
 
