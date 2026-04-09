@@ -96,7 +96,7 @@ class PluginShellcmdRunner extends CommonGLPI {
     * IMPORTANTE: tutti gli script devono accettare l'IP come primo parametro ($1).
     * Questa funzione è PUBLIC così front/run.php può leggerla direttamente.
     */
-/*   public static function getScriptsWhitelist(): array {
+   public static function getScriptsWhitelist(): array {
       return [
          'Test'    => '/var/www/html/glpi/plugins/shellcmd/scripts/TCInventory/test.sh',
          'TCINV'    => '/var/www/html/glpi/plugins/shellcmd/scripts/TCInventory/tcinventory.sh',
@@ -104,7 +104,7 @@ class PluginShellcmdRunner extends CommonGLPI {
          'PINGPLUS' => '/usr/local/bin/PINGPLUS',
       ];
    }
-*/
+
    /**
     * Recupera IPv4 dalla struttura NetworkPort -> NetworkName -> IPAddress.
     * Evita SQL "raw" e usa $DB->request() (query builder GLPI) per compatibilità GLPI 11. [2](https://forum.glpi-project.org/viewtopic.php?id=287465)[3](https://forum.glpi-project.org/viewtopic.php?id=291722)
