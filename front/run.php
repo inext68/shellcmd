@@ -23,7 +23,7 @@ if ($action !== 'run') {
 
    echo "<div class='center'>";
    echo "<h2>" . htmlescape(__('Shell CMD', 'shellcmd')) . "</h2>";
-   echo "<p>" . htmlescape(__('Questo plugin è pensato per l’uso dal TAB degli asset.', 'tcinvtools')) . "</p>";
+   echo "<p>" . htmlescape(__('Questo plugin è pensato per l’uso dal TAB degli asset.', 'shellcmd')) . "</p>";
    echo "</div>";
 
    Html::footer();
@@ -72,6 +72,7 @@ header('X-Accel-Buffering: no'); // aiuta su nginx
 //$SERVICE_HOME  = '';
 //$SERVICE_GNUPG = $SERVICE_HOME . '.gnupg';
 
+
 $SERVICE_GNUPG =  '.gnupg';
 
 
@@ -112,10 +113,21 @@ button:hover{background:#2c2c2c;color:#fff}
 
 <div id="toolbar">
   <button id="btnBack"><?php echo htmlescape(__('Torna all’asset', 'shellcmd')); ?></button>
-  <span style="color:#7aa"><?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'tcinvtools')); ?> <?php echo htmlescape($ip); ?></span>
+  <span style="color:#7aa"><?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'shellcmd')); ?> <?php echo htmlescape($ip); ?></span>
 </div>
+<div id="temp">
+<?php 
+$gnupg_dir=$(pwd)
+echo $gnupg_dir 
+pause
 
-<div id="term"><span class="hl"><?php echo htmlescape(__('Esecuzione', 'shellcmd')); ?> <?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'tcinvtools')); ?> <?php echo htmlescape($ip); ?>…</span>
+?>   
+
+</div>
+<div id="term"><span class="hl"><?php echo htmlescape(__('Esecuzione', 'shellcmd')); ?> <?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'shellcmd')); ?> <?php echo htmlescape($ip); ?>…</span>
+
+
+
 
 <?php
 // “primer” per sbloccare buffering di alcuni proxy/browser
@@ -134,7 +146,7 @@ $descriptors = [
 $proc = @proc_open($cmd, $descriptors, $pipes, null, $env);
 
 if (!is_resource($proc)) {
-   echo "\n<span class='err'>" . htmlescape(__('Errore: impossibile eseguire il comando.', 'tcinvtools')) . "</span>\n";
+   echo "\n<span class='err'>" . htmlescape(__('Errore: impossibile eseguire il comando.', 'shellcmd')) . "</span>\n";
    flush();
 } else {
    fclose($pipes[0]);

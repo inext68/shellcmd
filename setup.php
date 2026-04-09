@@ -21,7 +21,7 @@ function plugin_init_shellcmd() {
 
 function plugin_version_shellcmd() {
    return [
-      'name'         => 'SHELL CMD (Script Runner)',
+      'name'         => 'Shell CMD (Script Runner)',
       'version'      => PLUGIN_SHELLCMD_VERSION,
       'author'       => 'Mariano Benzi',
       'license'      => 'GPLv2',
