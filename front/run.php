@@ -73,7 +73,7 @@ header('X-Accel-Buffering: no'); // aiuta su nginx
 //$SERVICE_GNUPG = $SERVICE_HOME . '.gnupg';
 
 
-$SERVICE_GNUPG =  '.gnupg';
+$SERVICE_GNUPG =  dirname(__DIR__, 1).'/.gnupg';
 
 
 //@mkdir($SERVICE_HOME, 0700, true);
@@ -117,11 +117,10 @@ button:hover{background:#2c2c2c;color:#fff}
 </div>
 <div id="temp">
 <?php 
-$gnupg_dir = getcwd();
-echo $gnupg_dir;
+//$gnupg_dir = getcwd();
+echo $SERVICE_GNUPG;
 
-$path_tmp = dirname(__DIR__, 1);
-echo $path_tmp;
+//$path_tmp = dirname(__DIR__, 1);
 
 
 
