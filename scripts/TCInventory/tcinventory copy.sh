@@ -3,27 +3,43 @@ set -euo pipefail
 
 IP="$1"
 
+GLPI_ROOT_DIR="${GLPI_ROOT_DIR:-}"
+GLPI_PUBLIC_DIR="${GLPI_PUBLIC_DIR:-}"
+GLPI_CONFIG_DIR="${GLPI_CONFIG_DIR:-}"
+GLPI_VAR_DIR="${GLPI_VAR_DIR:-}"
+GLPI_LOG_DIR="${GLPI_LOG_DIR:-}"
 
+## echo "GLPI_ROOT_DIR=$GLPI_ROOT_DIR"
+## echo "GLPI_PUBLIC_DIR=$GLPI_PUBLIC_DIR"
+## echo "GLPI_CONFIG_DIR=$GLPI_CONFIG_DIR"
+## echo "GLPI_VAR_DIR=$GLPI_VAR_DIR"
+## echo "GLPI_LOG_DIR=$GLPI_LOG_DIR"
+
+
+if [ $# -eq 0 ]; then
+    echo "inserisci un indirizzo IP"
+    exit 1
+fi
 
 IP_TO_INV=$1
 
-##ROOT_PATH="/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/"
-##cd $ROOT_PATH
+ROOT_PATH="/var/www/html/glpi/plugins/tcinvtools/scripts/TCInventory/"
+cd $ROOT_PATH
 
 #CHECK if .ssh exist
 
-##if [ ! -d "$ROOT_PATH".ssh ]; then
+if [ ! -d "$ROOT_PATH".ssh ]; then
   # Crea la directory
-  #mkdir -p $ROOT_PATH".ssh"
-  #chmod 700 $ROOT_PATH".ssh"
-##fi
+  mkdir -p $ROOT_PATH".ssh"
+  chmod 700 $ROOT_PATH".ssh"
+fi
 
 
 
-#IP_RANGES_FILE_INV="./ip_ranges/ranges_ip_INV.txt"
+IP_RANGES_FILE_INV="./ip_ranges/ranges_ip_INV.txt"
 OUTPUT_FILE_10ZiG_INV="./results/10ZiG_INV.txt"
 OUTPUT_FILE_Axel_INV="./results/Axel_INV.txt"
-#echo "$IP_TO_INV $IP_TO_INV" > $IP_RANGES_FILE_INV
+echo "$IP_TO_INV $IP_TO_INV" > $IP_RANGES_FILE_INV
 
 
 # Variabili per il comando sshpass
@@ -34,79 +50,78 @@ INVURL="http://itassets.finstral.com:60001/glpi/plugins/tcinvtools/scripts/TCInv
 
 
 
-## Funzione per verificare se un IP è valido
-
-#is_valid_ip() {
-#    local ip=$1
-#    if [[ $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
-#        IFS='.' read -r -a octets <<< "$ip"
-#        for octet in "${octets[@]}"; do
-#            if ((octet < 0 || octet > 255)); then
-#                return 1
-#            fi
-#        done
-#        return 0
-#    else
-#        return 1
-#    fi
-#}
+# Funzione per verificare se un IP è valido
+is_valid_ip() {
+    local ip=$1
+    if [[ $ip =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+        IFS='.' read -r -a octets <<< "$ip"
+        for octet in "${octets[@]}"; do
+            if ((octet < 0 || octet > 255)); then
+                return 1
+            fi
+        done
+        return 0
+    else
+        return 1
+    fi
+}
 
 # Funzione per convertire un indirizzo IP in un numero a 32 bit
-#ip_to_num() {
-#    local ip=$1
-#    local a b c d
-#    IFS=. read -r a b c d <<< "$ip"
-#    echo $(((a << 24) + (b << 16) + (c << 8) + d))
-#}
+ip_to_num() {
+    local ip=$1
+    local a b c d
+    IFS=. read -r a b c d <<< "$ip"
+    echo $(((a << 24) + (b << 16) + (c << 8) + d))
+}
 
 # Funzione per convertire un numero a 32 bit in un indirizzo IP
-#num_to_ip() {
-#    local num=$1
-#    echo "$((num >> 24 & 255)).$((num >> 16 & 255)).$((num >> 8 & 255)).$((num & 255))"
-#}
+num_to_ip() {
+    local num=$1
+    echo "$((num >> 24 & 255)).$((num >> 16 & 255)).$((num >> 8 & 255)).$((num & 255))"
+}
 
 
 
 # Pulizia dei file di output
- echo > $OUTPUT_FILE_10ZiG_INV
- echo > $OUTPUT_FILE_Axel_INV
+> "$OUTPUT_FILE_10ZiG_INV"
+> "$OUTPUT_FILE_Axel_INV"
 
 # Lettura dei range IP dal file
-#while IFS= read -r line; do
-#    # Estrarre gli IP di inizio e fine del range
-#    IFS=' ' read -r start_ip end_ip <<< "$line"
+while IFS= read -r line; do
+    # Estrarre gli IP di inizio e fine del range
+    IFS=' ' read -r start_ip end_ip <<< "$line"
 
     # Verifica se gli IP sono validi
-#    if is_valid_ip "$start_ip" && is_valid_ip "$end_ip"; then
-#        start_num=$(ip_to_num "$start_ip")
-#        end_num=$(ip_to_num "$end_ip")
+    if is_valid_ip "$start_ip" && is_valid_ip "$end_ip"; then
+        start_num=$(ip_to_num "$start_ip")
+        end_num=$(ip_to_num "$end_ip")
 
-#        # Loop attraverso gli IP nel range
-#        for ((num=start_num; num<=end_num; num++)); do
-#            current_ip_INV=$(num_to_ip $num)
-#            echo "Verifica IP: $current_ip_INV"
+        # Loop attraverso gli IP nel range
+        for ((num=start_num; num<=end_num; num++)); do
+            current_ip_INV=$(num_to_ip $num)
+            echo "Verifica IP: $current_ip_INV"
 
-#            # Verifica se l'host è attivo
-            if ping -c 1 -W 1 "$1" &> /dev/null; then
-                echo "$1  attivo"
+            # Verifica se l'host è attivo
+            if ping -c 1 -W 1 "$current_ip_INV" &> /dev/null; then
+                echo "$current_ip_INV  attivo"
 
                 # Lettura del contenuto della pagina index.html
-                content=$(curl -s "http://$1/index.html")
+                content=$(curl -s "http://$current_ip_INV/index.html")
 
                 # Verifica della presenza delle stringhe specificate
                 if [[ $content == *"10ZiG"* ]]; then
-                    echo "$1" >> "$OUTPUT_FILE_10ZiG_INV"
+                    echo "$current_ip_INV" >> "$OUTPUT_FILE_10ZiG_INV"
                 elif [[ $content == *"<AxelAdmin>"* ]]; then
-                    echo "$1" >> "$OUTPUT_FILE_Axel_INV"
+                    echo "$current_ip_INV" >> "$OUTPUT_FILE_Axel_INV"
                 fi
             else
-                echo "$1 non  attivo"
+                echo "$current_ip_INV non  attivo"
             fi
-#        done
-#    else
-#        echo "Range IP non valido: $line"
-#    fi
-# done < "$IP_RANGES_FILE_INV"
+        done
+    else
+        echo "Range IP non valido: $line"
+    fi
+done < "$IP_RANGES_FILE_INV"
 
 # Esecuzione del comando SSH per gli IP nel file 10ZiG.txt
 
