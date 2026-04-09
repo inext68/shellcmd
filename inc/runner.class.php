@@ -41,11 +41,11 @@ class PluginShellcmdRunner extends CommonGLPI {
       $ips = self::getIPv4FromNetworkPorts($itemtype, $items_id);
 
       echo "<div class='spaced'>";
-      echo "<h3>" . htmlescape(__('Esegui script su IP dell’asset', 'tcinvtools')) . "</h3>";
+      echo "<h3>" . htmlescape(__('Esegui script su IP dell’asset', 'shellcmd')) . "</h3>";
 
       if (empty($ips)) {
          echo "<div class='alert alert-warning'>";
-         echo htmlescape(__('Nessun IPv4 valido trovato sulle porte di rete (esclusi IPv6, 0.0.0.0 e 127.0.0.1).', 'tcinvtools'));
+         echo htmlescape(__('Nessun IPv4 valido trovato sulle porte di rete (esclusi IPv6, 0.0.0.0 e 127.0.0.1).', 'shellcmd'));
          echo "</div>";
          echo "</div>";
          return true;
@@ -60,7 +60,7 @@ class PluginShellcmdRunner extends CommonGLPI {
       echo "<input type='hidden' name='items_id' value='" . (int)$items_id . "'>";
 
       // Dropdown IP
-      echo "<p style='margin:10px 0 6px 0;'><b>" . htmlescape(__('IP (IPv4) disponibili:', 'tcinvtools')) . "</b></p>";
+      echo "<p style='margin:10px 0 6px 0;'><b>" . htmlescape(__('IP (IPv4) disponibili:', 'shellcmd')) . "</b></p>";
       echo "<select name='ip' required style='min-width:260px;'>";
       foreach ($ips as $ip) {
          $ipEsc = htmlescape($ip);
@@ -70,7 +70,7 @@ class PluginShellcmdRunner extends CommonGLPI {
 
       // Dropdown Script
       $scripts = self::getScriptsWhitelist();
-      echo "<p style='margin:12px 0 6px 0;'><b>" . htmlescape(__('Script:', 'tcinvtools')) . "</b></p>";
+      echo "<p style='margin:12px 0 6px 0;'><b>" . htmlescape(__('Script:', 'shellcmd')) . "</b></p>";
       echo "<select name='script' required style='min-width:260px;'>";
       foreach ($scripts as $key => $path) {
          $k = htmlescape($key);
@@ -87,7 +87,7 @@ class PluginShellcmdRunner extends CommonGLPI {
       echo "<input type='hidden' name='return' value='" . htmlescape($return) . "'>";
 
       echo "<div style='margin-top:12px;'>";
-      echo "<button class='submit' type='submit'>" . htmlescape(__('Esegui', 'tcinvtools')) . "</button>";
+      echo "<button class='submit' type='submit'>" . htmlescape(__('Esegui', 'shellcmd')) . "</button>";
       echo "</div>";
 
       echo "</form>";
