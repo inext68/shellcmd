@@ -60,11 +60,11 @@ if (!isset($WHITELIST[$scriptKey])) {
 $commandPath = $WHITELIST[$scriptKey];
 
 // Disattiva buffering per favorire streaming realtime
-@ini_set('output_buffering', 'off');
-@ini_set('zlib.output_compression', '0');
-@ini_set('implicit_flush', '1');
-while (ob_get_level() > 0) { @ob_end_flush(); }
-ob_implicit_flush(true);
+// @ini_set('output_buffering', 'off');
+// @ini_set('zlib.output_compression', '0');
+// @ini_set('implicit_flush', '1');
+// while (ob_get_level() > 0) { @ob_end_flush(); }
+// ob_implicit_flush(true);
 
 // Header per streaming
 header('Content-Type: text/html; charset=utf-8');
