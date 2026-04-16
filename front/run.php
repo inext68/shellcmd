@@ -138,8 +138,8 @@ button:hover{background:#2c2c2c;color:#fff}
 
 <?php
 // “primer” per sbloccare buffering di alcuni proxy/browser
-echo "\n\n" . str_repeat(' ', 8192);
-flush();
+// echo "\n\n" . str_repeat(' ', 8192);
+// flush();
 
 // Esecuzione
 $cmd = [$commandPath, $ip];
