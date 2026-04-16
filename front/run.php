@@ -44,7 +44,7 @@ if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || $ip === '0.0.0.0' 
 }
 
 // Whitelist script dal runner (no Reflection)
-$WHITELIST = PluginShellcmdsRunner::getScriptsWhitelist();
+$WHITELIST = PluginShellcmdRunner::getScriptsWhitelist();
 
 if (!isset($WHITELIST[$scriptKey])) {
    header('Content-Type: text/plain; charset=utf-8');
