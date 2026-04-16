@@ -29,8 +29,8 @@ CURL="/usr/bin/curl"
 WGET="/usr/bin/wget"
 GLPI_INJECTOR="/usr/bin/glpi-injector"
 
-GLPI_URL="http://serverx:60001/plugins/glpiinventory"
-AGENT_URL="https://serverx:60001/f/TCInventory/agent.exe"
+GLPI_URL="http://itassets.finstral.com:60001/plugins/glpiinventory"
+AGENT_URL="http://itassets.finstral.com:60001/f/TCInventory/agent.exe"
 DEST="/tmp/tc_inventory"
 
 mkdir -p "$DEST"
