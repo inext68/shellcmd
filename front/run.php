@@ -1,30 +1,19 @@
-Ecco una versione corretta e ottimizzata dello script.
-
-### Principali correzioni apportate:
-1.  **Risoluzione variabili non definite**: Aggiunta la dichiarazione di `$SERVICE_HOME` (usata per i permessi ma non definita) e correzione del riferimento a `$SERVICE_HOME` nella funzione `chmod` (che causava un errore a runtime).
-2.  **Sicurezza e Validazione**:
-    *   Aggiunta validazione per evitare che `$scriptKey` o `$ip` contengano caratteri pericolosi (anche se filtrati dal whitelist, è buona norma).
-    *   Verifica esplicita che il comando esista prima dell'esecuzione.
-3.  **Gestione Output**: Migliorato il controllo di buffering e gestione degli errori di `proc_open`.
-4.  **Struttura HTML**: Corretto un tag `<div>` di chiusura mancante prima dell'area del terminale.
-5.  **Logica PHP**: Sostituito `die()` con `exit` per coerenza e gestione più pulita degli errori.
-
-```php
 <?php
 /**
  * Shell CMD Plugin - Runner Script
- * Corretto per GLPI 10/11
+ * Corretto per evitare errori di Output Buffer
  */
 
 // Caricamento ambiente GLPI
 if (!file_exists(__DIR__ . '/../../../inc/includes.php')) {
+    // Non usare echo prima di header, ma usiamo die() con codice di stato
+    http_response_code(500);
     die('Errore: Impossibile trovare il file di configurazione GLPI. Verifica il percorso.');
 }
 include_once __DIR__ . '/../../../inc/includes.php';
 
 Session::checkLoginUser();
 
-// Controllo permessi
 if (!Session::haveRight('config', UPDATE)) {
     Html::displayRightError();
     exit;
@@ -32,48 +21,40 @@ if (!Session::haveRight('config', UPDATE)) {
 
 require_once __DIR__ . '/../inc/runner.class.php';
 
-// Definizione percorsi
 $glpiRoot   = realpath(dirname(__DIR__, 3));
 $glpiPublic = realpath($glpiRoot . '/public');
 
-// Definizione variabili globali per il processo
-$SERVICE_HOME  = dirname(__DIR__, 1); // Cartella padre del plugin
+$SERVICE_HOME  = dirname(__DIR__, 1);
 $SERVICE_GNUPG = $SERVICE_HOME . '/.gnupg';
 
-// Variabili di richiesta
 $action = $_GET['action'] ?? '';
 
-// Pagina "di cortesia" se aperta dal menu Tools
 if ($action !== 'run') {
     Html::header(__('Shell CMD', 'shellcmd'), $_SERVER['PHP_SELF'], "tools");
-
     echo "<div class='center'>";
     echo "<h2>" . htmlescape(__('Shell CMD', 'shellcmd')) . "</h2>";
     echo "<p>" . htmlescape(__('Questo plugin è pensato per l’uso dal TAB degli asset.', 'shellcmd')) . "</p>";
     echo "</div>";
-
     Html::footer();
     exit;
 }
 
-// Inizializzazione Output Buffering
-ob_start();
+// Rimuoviamo ob_start() se non strettamente necessario per lo streaming, 
+// ma lo teniamo per sicurezza se ci sono include precedenti.
+// Tuttavia, il problema principale è l'output "prima" o "dopo".
+// GLPI gestisce già i buffer.
 
-// Recupero parametri
 $ip        = $_GET['ip'] ?? '';
 $scriptKey = $_GET['script'] ?? '';
 $returnUrl = $_GET['return'] ?? (CFG_GLPI['root_doc'] . '/front/central.php');
 
-// --- VALIDAZIONE INPUT ---
-
-// 1. Validazione IP: solo IPv4, escludi loopback e private non specifiche
+// Validazione IP
 if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || $ip === '0.0.0.0' || $ip === '127.0.0.1' || $ip === '::1') {
     header('Content-Type: text/plain; charset=utf-8');
     http_response_code(400);
     exit("Errore: IP non valido.\n");
 }
 
-// 2. Whitelist Script
 $WHITELIST = PluginShellcmdRunner::getScriptsWhitelist();
 
 if (empty($scriptKey) || !isset($WHITELIST[$scriptKey])) {
@@ -84,14 +65,12 @@ if (empty($scriptKey) || !isset($WHITELIST[$scriptKey])) {
 
 $commandPath = $WHITELIST[$scriptKey];
 
-// Verifica che il file di comando esista
 if (!file_exists($commandPath)) {
     header('Content-Type: text/plain; charset=utf-8');
     http_response_code(500);
     exit("Errore: File del comando non trovato: " . $commandPath . "\n");
 }
 
-// Configurazione Ambiente
 $env = [
     'GNUPGHOME' => $SERVICE_GNUPG,
     'LANG'      => 'C',
@@ -100,30 +79,28 @@ $env = [
     'GLPI_PUBLIC_DIR' => $glpiPublic ?: '',
 ];
 
-// Preparazione Cartelle (Sicurezza permessi)
 @mkdir($SERVICE_GNUPG, 0700, true);
-// Correzione: Usare $SERVICE_GNUPG per entrambi i chmod, o definire $SERVICE_HOME
 @chmod($SERVICE_HOME, 0700);
 @chmod($SERVICE_GNUPG, 0700);
 
-// Header per streaming realtime
+// Header per streaming
 header('Content-Type: text/html; charset=utf-8');
 header('Content-Disposition: inline');
 header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 header('Expires: 0');
-header('X-Accel-Buffering: no'); // Disabilita buffering nginx
+header('X-Accel-Buffering: no');
 
-// Disabilita buffering PHP per lo streaming
+// Disabilita buffering per streaming
 @ini_set('output_buffering', 'off');
 @ini_set('zlib.output_compression', 0);
 @ini_set('implicit_flush', 1);
-while (ob_get_level() > 0) {
-    ob_end_flush();
-}
-ob_implicit_flush(true);
 
-// Output HTML
+// Pulizia eventuali buffer residui di GLPI
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
+
 ?>
 <!doctype html>
 <html>
@@ -157,14 +134,12 @@ ob_implicit_flush(true);
     <br>
 
 <?php
-// Comando da eseguire
 $cmd = [$commandPath, $ip];
 
-// Configurazione proc_open
 $descriptors = [
-    0 => ['pipe', 'r'], // stdin
-    1 => ['pipe', 'w'], // stdout
-    2 => ['pipe', 'w'], // stderr
+    0 => ['pipe', 'r'],
+    1 => ['pipe', 'w'],
+    2 => ['pipe', 'w'],
 ];
 
 $proc = @proc_open($cmd, $descriptors, $pipes, null, $env);
@@ -173,21 +148,16 @@ if (!is_resource($proc)) {
     echo '<span class="err">' . htmlescape(__('Errore: impossibile inizializzare il processo.', 'shellcmd')) . '</span><br>';
     flush();
 } else {
-    fclose($pipes[0]); // Chiudi stdin se non necessario
-
-    // Imposta non bloccante per lo streaming
+    fclose($pipes[0]);
     stream_set_blocking($pipes[1], false);
     stream_set_blocking($pipes[2], false);
-
-    $hasError = false;
 
     while (true) {
         $read = [$pipes[1], $pipes[2]];
         $write = null;
         $except = null;
 
-        // Attesa con timeout per evitare loop infinito
-        $result = @stream_select($read, $write, $except, 0, 200000); // 200ms
+        $result = @stream_select($read, $write, $except, 0, 200000);
 
         if ($result === false) {
             break;
@@ -198,7 +168,6 @@ if (!is_resource($proc)) {
             if ($chunk !== false && $chunk !== '') {
                 if ($r === $pipes[2]) {
                     echo '<span class="err">' . htmlescape($chunk) . '</span>';
-                    $hasError = true;
                 } else {
                     echo htmlescape($chunk);
                 }
@@ -208,14 +177,12 @@ if (!is_resource($proc)) {
 
         $status = proc_get_status($proc);
         if ($status && !$status['running']) {
-            // Recupera eventuali dati residui
             $rem1 = @stream_get_contents($pipes[1]);
             $rem2 = @stream_get_contents($pipes[2]);
             
             if ($rem1) echo htmlescape($rem1);
             if ($rem2) {
                 echo '<span class="err">' . htmlescape($rem2) . '</span>';
-                $hasError = true;
             }
             flush();
             break;
@@ -224,8 +191,6 @@ if (!is_resource($proc)) {
 
     fclose($pipes[1]);
     fclose($pipes[2]);
-    
-    // Chiudi processo e recupera codice di uscita
     $exitCode = proc_close($proc);
     
     if ($exitCode === 0) {
