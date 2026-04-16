@@ -1,139 +1,212 @@
 <?php
 include_once __DIR__ . '/../../../inc/includes.php';
 
+
 Session::checkLoginUser();
+
 if (!Session::haveRight('config', UPDATE)) {
    Html::displayRightError();
    exit;
 }
 
-/*
- * IMPORTANTISSIMO:
- * Apriamo un buffer nostro, ma NON lo chiudiamo mai.
- * GLPI (LegacyFileLoadController) se ne occuperà.
- */
 ob_start();
+
+header('Content-Type: text/html; charset=utf-8');
+header('Cache-Control: no-cache');
 
 require_once __DIR__ . '/../inc/runner.class.php';
 
+$glpiRoot   = realpath(dirname(__DIR__, 3));
+$glpiPublic = realpath($glpiRoot . '/public');
+// $plugin_root = getcwd();
+
 $action = $_GET['action'] ?? '';
+
+// Pagina “di cortesia” se aperta dal menu Tools
 if ($action !== 'run') {
    Html::header(__('Shell CMD', 'shellcmd'), $_SERVER['PHP_SELF'], "tools");
-   echo '<div class="center"><h2>Shell CMD</h2></div>';
+
+   echo "<div class='center'>";
+   echo "<h2>" . htmlescape(__('Shell CMD', 'shellcmd')) . "</h2>";
+   echo "<p>" . htmlescape(__('Questo plugin è pensato per l’uso dal TAB degli asset.', 'shellcmd')) . "</p>";
+   echo "</div>";
+
    Html::footer();
    exit;
 }
+
+// ---------------- RUN ----------------
 
 $ip        = $_GET['ip'] ?? '';
 $scriptKey = $_GET['script'] ?? '';
 $returnUrl = $_GET['return'] ?? (CFG_GLPI['root_doc'] . '/front/central.php');
 
-if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+// Validazione IP: solo IPv4, escludi 0.0.0.0 e 127.0.0.1
+if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || $ip === '0.0.0.0' || $ip === '127.0.0.1') {
+   header('Content-Type: text/plain; charset=utf-8');
    http_response_code(400);
-   echo "IP non valido";
-   exit;
+   die("IP non valido.\n");
 }
 
+// Whitelist script dal runner (no Reflection)
 $WHITELIST = PluginShellcmdRunner::getScriptsWhitelist();
+
 if (!isset($WHITELIST[$scriptKey])) {
-   http_response_code(403);
-   echo "Script non autorizzato";
-   exit;
+   header('Content-Type: text/plain; charset=utf-8');
+   http_response_code(400);
+   die("Script non autorizzato.\n");
 }
 
 $commandPath = $WHITELIST[$scriptKey];
 
-/* Header risposta */
-header('Content-Type: text/html; charset=utf-8');
-header('Cache-Control: no-cache, no-store, must-revalidate');
+// Disattiva buffering per favorire streaming realtime
+@ini_set('output_buffering', 'off');
+@ini_set('zlib.output_compression', '0');
+@ini_set('implicit_flush', '1');
+while (ob_get_level() > 0) { @ob_end_flush(); }
+ob_implicit_flush(true);
 
-?>
-<!doctype html>
+// Header per streaming
+header('Content-Type: text/html; charset=utf-8');
+header('Cache-Control: no-cache, no-store, must-revalidate, no-transform');
+header('Pragma: no-cache');
+header('Expires: 0');
+header('X-Accel-Buffering: no'); // aiuta su nginx
+
+// Cartelle di servizio per evitare /var/www/.gnupg (gpg + sshpass)
+//$SERVICE_HOME  = '';
+//$SERVICE_GNUPG = $SERVICE_HOME . '.gnupg';
+
+
+$SERVICE_GNUPG =  dirname(__DIR__, 1).'/.gnupg';
+
+
+//@mkdir($SERVICE_HOME, 0700, true);
+@mkdir($SERVICE_GNUPG, 0700, true);
+@chmod($SERVICE_HOME, 0700);
+@chmod($SERVICE_GNUPG, 0700);
+
+// Env passate al processo (evita HOME=/var/www e GNUPG in /var/www/.gnupg)
+$env = [
+
+
+//   'HOME'      => $SERVICE_HOME,
+   'GNUPGHOME' => $SERVICE_GNUPG,
+   'LANG'      => 'C',
+   'LC_ALL'    => 'C',
+   'GLPI_ROOT_DIR'   => $glpiRoot ?: '',
+   'GLPI_PUBLIC_DIR' => $glpiPublic ?: '',
+
+
+   ];
+
+
+?><!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
 <title><?php echo htmlescape($scriptKey); ?> – realtime</title>
 <style>
-body { background:#111; color:#0f0; font-family:monospace; margin:0; }
-#bar { padding:8px 12px; background:#000; border-bottom:1px solid #333 }
-#term { white-space:pre-wrap; padding:12px; }
-.err { color:#f55 }
+html,body{margin:0;padding:0;background:#111;color:#0f0;font-family:monospace}
+#toolbar{display:flex;gap:8px;align-items:center;padding:8px 12px;background:#0b0b0b;border-bottom:1px solid #222;}
+button{background:#222;color:#ccc;border:1px solid #444;padding:6px 10px;border-radius:4px;cursor:pointer}
+button:hover{background:#2c2c2c;color:#fff}
+#term{padding:12px;white-space:pre-wrap;line-height:1.25;overflow:auto;height:calc(100vh - 46px);box-sizing:border-box}
+.hl{color:#8cf}
+.err{color:#f66}
 </style>
 </head>
 <body>
 
-<div id="bar">
-  <?php echo htmlescape($scriptKey); ?> su <?php echo htmlescape($ip); ?>
+<div id="toolbar">
+  <button id="btnBack"><?php echo htmlescape(__('Torna all’asset', 'shellcmd')); ?></button>
+  <span style="color:#7aa"><?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'shellcmd')); ?> <?php echo htmlescape($ip); ?></span>
 </div>
+<div id="temp">
+<?php 
+//$gnupg_dir = getcwd();
+//echo $SERVICE_GNUPG;
 
-<div id="term">
+//$path_tmp = dirname(__DIR__, 1);
+
+
+
+sleep(4);
+
+?>   
+
+</div>
+<div id="term"><span class="hl"><?php echo htmlescape(__('Esecuzione', 'shellcmd')); ?> <?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'shellcmd')); ?> <?php echo htmlescape($ip); ?>…</span>
+
+
 <?php
+// “primer” per sbloccare buffering di alcuni proxy/browser
+echo "\n\n" . str_repeat(' ', 8192);
 flush();
 
-/* Comando DEFINITIVO: usa bash esplicito */
-$cmd = ['/usr/bin/env', 'bash', $commandPath, $ip];
+// Esecuzione
+$cmd = [$commandPath, $ip];
 
-$proc = proc_open(
-   $cmd,
-   [
-      1 => ['pipe', 'w'], // STDOUT
-      2 => ['pipe', 'w'], // STDERR
-   ],
-   $pipes,
-   null,
-   [
-      'LANG'   => 'C',
-      'LC_ALL' => 'C',
-   ]
-);
+$descriptors = [
+   0 => ['pipe', 'r'],
+   1 => ['pipe', 'w'],
+   2 => ['pipe', 'w'],
+];
+
+$proc = @proc_open($cmd, $descriptors, $pipes, null, $env);
 
 if (!is_resource($proc)) {
-   echo "<span class='err'>Errore: impossibile eseguire il comando</span>\n";
+   echo "\n<span class='err'>" . htmlescape(__('Errore: impossibile eseguire il comando.', 'shellcmd')) . "</span>\n";
    flush();
-   exit;
-}
+} else {
+   fclose($pipes[0]);
+   stream_set_blocking($pipes[1], false);
+   stream_set_blocking($pipes[2], false);
 
-stream_set_blocking($pipes[1], false);
-stream_set_blocking($pipes[2], false);
+   while (true) {
+      $read = [$pipes[1], $pipes[2]];
+      $write = null;
+      $except = null;
 
-while (true) {
-   $read = [$pipes[1], $pipes[2]];
-   $write = null;
-   $except = null;
+      @stream_select($read, $write, $except, 0, 200000);
 
-   if (stream_select($read, $write, $except, 0, 200000) === false) {
-      break;
-   }
-
-   foreach ($read as $r) {
-      $out = stream_get_contents($r);
-      if ($out !== '') {
-         if ($r === $pipes[2]) {
-            echo '<span class="err">' . htmlescape($out) . '</span>';
-         } else {
-            echo htmlescape($out);
+      foreach ($read as $r) {
+         $chunk = stream_get_contents($r);
+         if ($chunk !== false && $chunk !== '') {
+            if ($r === $pipes[2]) {
+               echo '<span class="err">' . htmlescape($chunk) . '</span>';
+            } else {
+               echo htmlescape($chunk);
+            }
+            flush();
          }
+      }
+
+      $status = proc_get_status($proc);
+      if ($status && !$status['running']) {
+         $rem1 = stream_get_contents($pipes[1]);
+         $rem2 = stream_get_contents($pipes[2]);
+         if ($rem1) echo htmlescape($rem1);
+         if ($rem2) echo '<span class="err">' . htmlescape($rem2) . '</span>';
          flush();
+         break;
       }
    }
 
-   $status = proc_get_status($proc);
-   if (!$status['running']) {
-      break;
-   }
+   fclose($pipes[1]);
+   fclose($pipes[2]);
+   proc_close($proc);
 }
 
-fclose($pipes[1]);
-fclose($pipes[2]);
-proc_close($proc);
-
-echo "\n=== OPERAZIONE COMPLETATA ===\n";
+echo "\n\n<span class='hl'>" . htmlescape(__('Operazione completata.', 'shellcmd')) . "</span>\n";
 flush();
 ?>
 </div>
 
 <script>
-document.addEventListener('click', () => {
+// In GLPI 11 conviene evitare di concatenare HTML non escapato dentro JS.
+// Qui usiamo json_encode (equivalente a JS safe string) per l’URL di ritorno.
+document.getElementById('btnBack').addEventListener('click', function() {
   window.location.href = <?php echo json_encode($returnUrl); ?>;
 });
 </script>
