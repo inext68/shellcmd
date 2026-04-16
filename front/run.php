@@ -9,7 +9,7 @@ if (!Session::haveRight('config', UPDATE)) {
    exit;
 }
 
-ob_start();
+
 
 // header('Content-Type: text/html; charset=utf-8');
 // header('Cache-Control: no-cache');
@@ -34,7 +34,7 @@ if ($action !== 'run') {
    Html::footer();
    exit;
 }
-
+ob_start();
 // ---------------- RUN ----------------
 
 $ip        = $_GET['ip'] ?? '';
