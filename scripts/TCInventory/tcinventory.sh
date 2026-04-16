@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IP="$1"
-GLPI_SERVER_NAME="http://itassets.finstral.com/"
+GLPI_SERVER_NAME="http://itassets02.intranet.finstral.org/"
 PLUGIN_NAME="shellcmd"
 AGENT_EXE_PATH="$GLPI_SERVER_NAME/f/TCInventory/"
 
@@ -146,7 +146,7 @@ EOF
 
         echo "$IP" >> "$OUTPUT_FILE_Axel_INV"
 
-    fi
+    
 else
     echo "$IP non attivo"
 fi

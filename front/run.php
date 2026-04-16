@@ -11,8 +11,8 @@ if (!Session::haveRight('config', UPDATE)) {
 
 ob_start();
 
-header('Content-Type: text/html; charset=utf-8');
-header('Cache-Control: no-cache');
+// header('Content-Type: text/html; charset=utf-8');
+// header('Cache-Control: no-cache');
 
 require_once __DIR__ . '/../inc/runner.class.php';
 
@@ -122,21 +122,18 @@ button:hover{background:#2c2c2c;color:#fff}
   <button id="btnBack"><?php echo htmlescape(__('Torna all’asset', 'shellcmd')); ?></button>
   <span style="color:#7aa"><?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'shellcmd')); ?> <?php echo htmlescape($ip); ?></span>
 </div>
-<div id="temp">
-<?php 
-//$gnupg_dir = getcwd();
-//echo $SERVICE_GNUPG;
-
-//$path_tmp = dirname(__DIR__, 1);
 
 
-
-sleep(4);
-
-?>   
+ 
 
 </div>
-<div id="term"><span class="hl"><?php echo htmlescape(__('Esecuzione', 'shellcmd')); ?> <?php echo htmlescape($scriptKey); ?> <?php echo htmlescape(__('su', 'shellcmd')); ?> <?php echo htmlescape($ip); ?>…</span>
+<div id="term">
+   <span class="hl">
+      <?php echo htmlescape(__('Esecuzione', 'shellcmd')); ?> 
+      <?php echo htmlescape($scriptKey); ?> 
+      <?php echo htmlescape(__('su', 'shellcmd')); ?> 
+      <?php echo htmlescape($ip); ?>…
+   </span>
 
 
 <?php
