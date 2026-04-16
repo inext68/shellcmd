@@ -1,153 +1,130 @@
 #!/usr/bin/env bash
-set -euo pipefail
+
+# DEBUG esplicito (essenziale da web)
+set -x
+set -o pipefail
 
 IP="$1"
-GLPI_SERVER_NAME="http://itassets.finstral.com/"
-PLUGIN_NAME="shellcmd"
-AGENT_EXE_PATH="$GLPI_SERVER_NAME/f/TCInventory/"
+[ -z "$IP" ] && { echo "IP mancante"; exit 1; }
 
-IP_TO_INV=$1
-ROOT_PATH="/var/www/html/glpi/plugins/shellcmd"
+################################
+# Percorsi assoluti
+################################
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BASE_DIR="$SCRIPT_DIR"
+RESULTS_DIR="$BASE_DIR/results"
+JSON_DIR="$BASE_DIR/jsons"
+LOG_DIR="$BASE_DIR/logs"
 
+mkdir -p "$RESULTS_DIR" "$JSON_DIR" "$LOG_DIR"
 
-#IP_RANGES_FILE_INV="./ip_ranges/ranges_ip_INV.txt"
-OUTPUT_FILE_10ZiG_INV="$SCRIPT_DIR/results/10ZiG_INV.txt"
-OUTPUT_FILE_Axel_INV="$SCRIPT_DIR/results/Axel_INV.txt"
-#echo "$IP_TO_INV $IP_TO_INV" > $IP_RANGES_FILE_INV
+LOGFILE="$LOG_DIR/${IP}_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -a "$LOGFILE") 2>&1
 
+################################
+# Binari
+################################
+PING="/bin/ping"
+CURL="/usr/bin/curl"
+WGET="/usr/bin/wget"
+GLPI_INJECTOR="/usr/bin/glpi-injector"
 
-# Variabili per il comando sshpass
-pass=$(echo "1234" | gpg --batch -d -q --passphrase-fd 0 $SCRIPT_DIR/.spwd);                # Sostituisci con la password corretta
-DESTPATH="/boot/inv"                                                            # Sostituisci con il percorso di destinazione remoto
-GETPATH="http://itassets02.intranet.finstral.org:60001/f/TCInventory"                # Sostituisci con il percorso HTTP per il download dello script
-INVURL="http://itassets02.intranet.finstral.org:60001/f/TCInventory"
+GLPI_URL="http://serverx:60001/plugins/glpiinventory"
+AGENT_URL="https://serverx:60001/f/TCInventory/agent.exe"
+DEST="/tmp/tc_inventory"
 
+mkdir -p "$DEST"
 
+echo "== Inventario TC su $IP =="
+echo "User: $(id)"
+echo "Start: $(date)"
 
-# Pulizia dei file di output
- echo > $OUTPUT_FILE_10ZiG_INV
- echo > $OUTPUT_FILE_Axel_INV
-
-
-
-## verifica host attivo o no
-
-            if ping -c 1 -W 1 "$1" &> /dev/null; then
-                echo "$1  attivo"
-
-                # Lettura del contenuto della pagina index.html
-                content=$(curl -s "http://$1/index.html")
-
-                # Verifica della presenza delle stringhe specificate
-
-
-    #################################################################
-    # 10ZiG
-    #################################################################
-
-
-
-                if [[ $content == *"10ZiG"* ]]; then
-
-		   # Esecuzione del comando SSH per gli IP nel file 10ZiG.txt
-
-		    echo "Eseguendo comando SSH per $1"
-
-		    ssh -T -F $ROOT_PATH/ssh_config root@$1 <<REMCODE
-		    cd /
-		    sleep 1
-				[ -d "/boot/inv" ] || mkdir -p "/boot/inv"
-				rm -f /boot/inv/agent.exe
-				cd /boot/inv
-			    wget -q -c $GETPATH/agent.exe
-			    sleep 1
-			    chmod +x agent.exe
-			    sleep 1
-		            echo "Esecuzione agent e invio informazioni al server";
-			    ./agent.exe --server http://itassets.finstral.com:60001/plugins/glpiinventory/ --format FORMAT_GLPI --tag THINCLIENT_10ZIG --nosoftware  --verbose
-REMCODE
-
-
-		echo "$1" >> "$OUTPUT_FILE_10ZiG_INV"
-        echo "Inventario 10ZiG eseguito su IP $1"
-
-    #################################################################
-    # AXEL
-    #################################################################
-
-
-                elif [[ $content == *"<AxelAdmin>"* ]]; then
-					echo "Inventario Axel su IP $1"
-			
-					inventory_path="$SCRIPT_DIR/jsons"
-					mkdir -p "$inventory_path"
-			
-					source="http://$1/index.html"
-					Name_content=$(curl -s "$source")
-			
-					Axel_BVERSION=$(echo "$Name_content" | awk -F'[<>]' '/<Version>/{print $3}')
-					Axel_MACADDR=$(echo "$Name_content" | awk -F'[<>]' '/<MacAddress>/{print $3}')
-					Axel_UUID="${Axel_MACADDR//:/}"
-					Axel_IPADDRESS=$(echo "$Name_content" | awk -F'[<>]' '/<IPAddress>/{print $3}')
-					Axel_IPADDRESS="${Axel_IPADDRESS:-$1}"
-			
-					Axel_IPGATEWAY="$(echo "$Axel_IPADDRESS" | cut -d. -f1-3).254"
-					Axel_IPSUBNET="$(echo "$Axel_IPADDRESS" | cut -d. -f1-3).0"
-					Axel_boot="$(date '+%Y-%m-%d %T')"
-			
-					if echo "$Name_content" | grep -q '<Name>'; then
-						Axel_NAME=$(echo "$Name_content" | grep -oP '(?<=<Name>).*?(?=</Name>)')
-					else
-						Axel_NAME=$(echo "$Name_content" | grep -oP '(?<=<FQDN>).*?(?=</FQDN>)' | cut -d. -f1)
-					fi
-			
-					json_file="$inventory_path/$1-$Axel_NAME-$Axel_UUID.json"
-			
-					cat > "$json_file" <<EOF
-{
-"action": "inventory",
-"content": {
-	"bios": {
-	"bmanufacturer": "Axel",
-	"bversion": "$Axel_BVERSION"
-	},
-	"hardware": {
-	"chassis_type": "thinclient",
-	"defaultgateway": "$Axel_IPGATEWAY",
-	"name": "$Axel_NAME",
-	"uuid": "$Axel_UUID"
-	},
-	"networks": [{
-	"description": "eth0",
-	"ipaddress": "$Axel_IPADDRESS",
-	"ipgateway": "$Axel_IPGATEWAY",
-	"ipmask": "255.255.255.0",
-	"ipsubnet": "$Axel_IPSUBNET",
-	"mac": "$Axel_MACADDR",
-	"status": "up"
-	}],
-	"operatingsystem": {
-	"full_name": "Axel Embedded",
-	"boot_time": "$Axel_boot"
-	},
-	"versionclient": "FinAxelAgent"
-},
-"deviceid": "$Axel_UUID-$Axel_UUID",
-"itemtype": "Computer",
-"tag": "THINCLIENT_AXEL"
-}
-EOF			
-
-
-
-       /usr/bin/glpi-injector -v -r -f "$json_file" \
-          --useragent Fin_TC_Agent \
-          --url http://itassets.finstral.com:60001/plugins/glpiinventory
-
-        echo "$IP" >> "$OUTPUT_FILE_Axel_INV"
-
-    fi
-else
-    echo "$IP non attivo"
+################################
+# Ping
+################################
+if ! $PING -c 1 -W 1 "$IP" >/dev/null 2>&1; then
+   echo "HOST NON RAGGIUNGIBILE"
+   exit 0
 fi
+echo "Host attivo"
+
+################################
+# Identificazione
+################################
+INDEX="$($CURL -sf http://$IP/index.html || true)"
+
+if [[ "$INDEX" == *"10ZiG"* ]]; then
+   TYPE="10ZIG"
+elif [[ "$INDEX" == *"<AxelAdmin>"* ]]; then
+   TYPE="AXEL"
+else
+   echo "Tipo dispositivo non riconosciuto"
+   exit 0
+fi
+
+echo "Tipo: $TYPE"
+
+################################
+# 10ZiG
+################################
+if [ "$TYPE" = "10ZIG" ]; then
+   echo "Download agent"
+   if ! $WGET -q -O "$DEST/agent.exe" "$AGENT_URL"; then
+      echo "DOWNLOAD FALLITO"
+      exit 1
+   fi
+
+   chmod +x "$DEST/agent.exe"
+
+   echo "Esecuzione agent"
+   "$DEST/agent.exe" \
+      --server "$GLPI_URL" \
+      --format FORMAT_GLPI \
+      --tag THINCLIENT_10ZIG \
+      --nosoftware \
+      --verbose
+
+   echo "Inventario 10ZiG completato"
+   exit 0
+fi
+
+################################
+# AXEL
+################################
+echo "Inventario AXEL"
+
+MAC=$(echo "$INDEX" | awk -F'[<>]' '/<MacAddress>/{print $3}')
+UUID=$(echo "$MAC" | tr -d ':')
+NAME=$(echo "$INDEX" | awk -F'[<>]' '/<Name>/{print $3}')
+BOOT=$(date +"%Y-%m-%d %H:%M:%S")
+
+JSON="$JSON_DIR/${IP}-${NAME}-${UUID}.json"
+
+cat > "$JSON" <<EOF
+{
+  "action": "inventory",
+  "deviceid": "$UUID-$UUID",
+  "itemtype": "Computer",
+  "tag": "THINCLIENT_AXEL",
+  "content": {
+    "hardware": {
+      "name": "$NAME",
+      "uuid": "$UUID",
+      "chassis_type": "thinclient"
+    },
+    "networks": [{
+      "ipaddress": "$IP",
+      "mac": "$MAC"
+    }],
+    "operatingsystem": {
+      "boot_time": "$BOOT"
+    }
+  }
+}
+EOF
+
+echo "Invio inventario a GLPI"
+$GLPI_INJECTOR -v -r -f "$JSON" --useragent Fin_TC_Agent --url "$GLPI_URL"
+
+echo "Inventario AXEL completato"
+exit 0
