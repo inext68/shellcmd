@@ -20,8 +20,8 @@ OUTPUT_FILE_Axel_INV="$SCRIPT_DIR/results/Axel_INV.txt"
 # Variabili per il comando sshpass
 pass=$(echo "1234" | gpg --batch -d -q --passphrase-fd 0 $SCRIPT_DIR/.spwd);                # Sostituisci con la password corretta
 DESTPATH="/boot/inv"                                                            # Sostituisci con il percorso di destinazione remoto
-GETPATH="https://itassets02.intranet.finstral.org:60001/f/TCInventory"                # Sostituisci con il percorso HTTP per il download dello script
-INVURL="https://itassets02.intranet.finstral.org:60001/f/TCInventory"
+GETPATH="http://itassets02.intranet.finstral.org:60001/f/TCInventory"                # Sostituisci con il percorso HTTP per il download dello script
+INVURL="http://itassets02.intranet.finstral.org:60001/f/TCInventory"
 
 
 
@@ -140,7 +140,6 @@ REMCODE
 EOF			
 
 
-sleep 1
 
        /usr/bin/glpi-injector -v -r -f "$json_file" \
           --useragent Fin_TC_Agent \
