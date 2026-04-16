@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OUTPUT_FILE_10ZiG_INV="$SCRIPT_DIR/results/10ZiG_INV.txt"
 OUTPUT_FILE_Axel_INV="$SCRIPT_DIR/results/Axel_INV.txt"
 #echo "$IP_TO_INV $IP_TO_INV" > $IP_RANGES_FILE_INV
-
+echo "$1 is the ip"
 
 # Variabili per il comando sshpass
 pass=$(echo "1234" | gpg --batch -d -q --passphrase-fd 0 $SCRIPT_DIR/.spwd);                # Sostituisci con la password corretta
