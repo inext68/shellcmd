@@ -1,19 +1,27 @@
 <?php
 /**
- * Shell CMD Plugin - Runner Script
- * Corretto per evitare errori di Output Buffer
+ * Shell CMD Runner - GLPI 10/11 Streaming Fix
+ * 
+ * Istruzioni critiche:
+ * 1. NON inserire spazi o newline prima del primo <?php.
+ * 2. NON inserire il tag ?> finale.
+ * 3. Salvare come UTF-8 SENZA BOM.
  */
 
-// Caricamento ambiente GLPI
+// 1. Controllo di sicurezza: Evita l'inclusione in contesti non previsti
+if (!defined('GLPI_ROOT')) {
+    http_response_code(403);
+    exit('Accesso non autorizzato.');
+}
+
+// 2. Caricamento GLPI
 if (!file_exists(__DIR__ . '/../../../inc/includes.php')) {
-    // Non usare echo prima di header, ma usiamo die() con codice di stato
-    http_response_code(500);
-    die('Errore: Impossibile trovare il file di configurazione GLPI. Verifica il percorso.');
+    exit('Errore: File GLPI non trovato.');
 }
 include_once __DIR__ . '/../../../inc/includes.php';
 
+// 3. Verifica sessione e permessi
 Session::checkLoginUser();
-
 if (!Session::haveRight('config', UPDATE)) {
     Html::displayRightError();
     exit;
@@ -21,15 +29,30 @@ if (!Session::haveRight('config', UPDATE)) {
 
 require_once __DIR__ . '/../inc/runner.class.php';
 
+// 4. DEFINIZIONE PERCORSI
 $glpiRoot   = realpath(dirname(__DIR__, 3));
 $glpiPublic = realpath($glpiRoot . '/public');
-
 $SERVICE_HOME  = dirname(__DIR__, 1);
 $SERVICE_GNUPG = $SERVICE_HOME . '/.gnupg';
 
 $action = $_GET['action'] ?? '';
 
+// 5. GESTIONE PAGINA DI CORTESIA (non 'run')
 if ($action !== 'run') {
+    // Pulizia CRITICA dei buffer prima di qualsiasi output
+    while (ob_get_level() > 0) {
+        @ob_end_clean();
+    }
+    
+    // Disabilita buffering di GLPI per questo file
+    @ini_set('output_buffering', 'off');
+    @ini_set('zlib.output_compression', 0);
+    @ini_set('implicit_flush', 1);
+    
+    // Imposta header
+    header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: no-cache, no-store, must-revalidate');
+    
     Html::header(__('Shell CMD', 'shellcmd'), $_SERVER['PHP_SELF'], "tools");
     echo "<div class='center'>";
     echo "<h2>" . htmlescape(__('Shell CMD', 'shellcmd')) . "</h2>";
@@ -39,38 +62,45 @@ if ($action !== 'run') {
     exit;
 }
 
-// Rimuoviamo ob_start() se non strettamente necessario per lo streaming, 
-// ma lo teniamo per sicurezza se ci sono include precedenti.
-// Tuttavia, il problema principale è l'output "prima" o "dopo".
-// GLPI gestisce già i buffer.
+// 6. PREPARAZIONE STREAMING (CRITICO PER GLPI)
+// Pulizia totale dei buffer residui di GLPI
+while (ob_get_level() > 0) {
+    @ob_end_clean();
+}
 
+// Disabilita buffering di sistema
+@ini_set('output_buffering', 'off');
+@ini_set('zlib.output_compression', 0);
+@ini_set('implicit_flush', 1);
+@ini_set('max_execution_time', 0); // Nessuna limitazione tempo
+
+// Recupero parametri
 $ip        = $_GET['ip'] ?? '';
 $scriptKey = $_GET['script'] ?? '';
 $returnUrl = $_GET['return'] ?? (CFG_GLPI['root_doc'] . '/front/central.php');
 
 // Validazione IP
-if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || $ip === '0.0.0.0' || $ip === '127.0.0.1' || $ip === '::1') {
-    header('Content-Type: text/plain; charset=utf-8');
+if (empty($ip) || !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) || in_array($ip, ['0.0.0.0', '127.0.0.1', '::1'])) {
     http_response_code(400);
+    header('Content-Type: text/plain; charset=utf-8');
     exit("Errore: IP non valido.\n");
 }
 
 $WHITELIST = PluginShellcmdRunner::getScriptsWhitelist();
-
 if (empty($scriptKey) || !isset($WHITELIST[$scriptKey])) {
-    header('Content-Type: text/plain; charset=utf-8');
     http_response_code(400);
+    header('Content-Type: text/plain; charset=utf-8');
     exit("Errore: Script non autorizzato.\n");
 }
 
 $commandPath = $WHITELIST[$scriptKey];
-
 if (!file_exists($commandPath)) {
-    header('Content-Type: text/plain; charset=utf-8');
     http_response_code(500);
+    header('Content-Type: text/plain; charset=utf-8');
     exit("Errore: File del comando non trovato: " . $commandPath . "\n");
 }
 
+// 7. SETUP AMBIENTE
 $env = [
     'GNUPGHOME' => $SERVICE_GNUPG,
     'LANG'      => 'C',
@@ -83,24 +113,16 @@ $env = [
 @chmod($SERVICE_HOME, 0700);
 @chmod($SERVICE_GNUPG, 0700);
 
-// Header per streaming
+// 8. HEADER PER STREAMING (Disabilita cache e buffering proxy)
 header('Content-Type: text/html; charset=utf-8');
 header('Content-Disposition: inline');
-header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0');
+header('Cache-Control: no-cache, no-store, must-revalidate, max-age=0, no-transform');
 header('Pragma: no-cache');
 header('Expires: 0');
-header('X-Accel-Buffering: no');
+header('X-Accel-Buffering: no'); // Per Nginx
+header('Connection: close'); // Importante per disabilitare keep-alive che blocca lo streaming
 
-// Disabilita buffering per streaming
-@ini_set('output_buffering', 'off');
-@ini_set('zlib.output_compression', 0);
-@ini_set('implicit_flush', 1);
-
-// Pulizia eventuali buffer residui di GLPI
-while (ob_get_level() > 0) {
-    ob_end_clean();
-}
-
+// 9. OUTPUT HTML
 ?>
 <!doctype html>
 <html>
@@ -119,33 +141,21 @@ while (ob_get_level() > 0) {
 </style>
 </head>
 <body>
-
 <div id="toolbar">
     <button id="btnBack"><?php echo htmlescape(__('Torna all’asset', 'shellcmd')); ?></button>
     <span style="color:#7aa">Esecuzione: <?php echo htmlescape($scriptKey); ?> su <?php echo htmlescape($ip); ?></span>
 </div>
-
 <div id="term">
-    <span class="hl">
-        <?php echo htmlescape(__('Inizio esecuzione...', 'shellcmd')); ?> 
-        <?php echo htmlescape($scriptKey); ?> 
-        su <?php echo htmlescape($ip); ?>…
-    </span>
-    <br>
+    <span class="hl"><?php echo htmlescape(__('Inizio esecuzione...', 'shellcmd')); ?> <?php echo htmlescape($scriptKey); ?> su <?php echo htmlescape($ip); ?>...</span><br>
 
 <?php
 $cmd = [$commandPath, $ip];
-
-$descriptors = [
-    0 => ['pipe', 'r'],
-    1 => ['pipe', 'w'],
-    2 => ['pipe', 'w'],
-];
+$descriptors = [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
 
 $proc = @proc_open($cmd, $descriptors, $pipes, null, $env);
 
 if (!is_resource($proc)) {
-    echo '<span class="err">' . htmlescape(__('Errore: impossibile inizializzare il processo.', 'shellcmd')) . '</span><br>';
+    echo '<span class="err">' . htmlescape(__('Errore: impossibile eseguire il comando.', 'shellcmd')) . '</span><br>';
     flush();
 } else {
     fclose($pipes[0]);
@@ -157,9 +167,8 @@ if (!is_resource($proc)) {
         $write = null;
         $except = null;
 
-        $result = @stream_select($read, $write, $except, 0, 200000);
-
-        if ($result === false) {
+        // Timeout di 200ms per evitare loop infinito
+        if (@stream_select($read, $write, $except, 0, 200000) === false) {
             break;
         }
 
@@ -171,7 +180,11 @@ if (!is_resource($proc)) {
                 } else {
                     echo htmlescape($chunk);
                 }
-                flush();
+                // FLUSH OBBLIGATORIO
+                if (function_exists('ob_flush')) {
+                    @ob_flush();
+                }
+                @flush();
             }
         }
 
@@ -179,11 +192,8 @@ if (!is_resource($proc)) {
         if ($status && !$status['running']) {
             $rem1 = @stream_get_contents($pipes[1]);
             $rem2 = @stream_get_contents($pipes[2]);
-            
             if ($rem1) echo htmlescape($rem1);
-            if ($rem2) {
-                echo '<span class="err">' . htmlescape($rem2) . '</span>';
-            }
+            if ($rem2) echo '<span class="err">' . htmlescape($rem2) . '</span>';
             flush();
             break;
         }
@@ -192,7 +202,7 @@ if (!is_resource($proc)) {
     fclose($pipes[1]);
     fclose($pipes[2]);
     $exitCode = proc_close($proc);
-    
+
     if ($exitCode === 0) {
         echo '<br><span class="success">' . htmlescape(__('Operazione completata con successo.', 'shellcmd')) . '</span>';
     } else {
@@ -201,14 +211,11 @@ if (!is_resource($proc)) {
     flush();
 }
 ?>
-
 </div>
-
 <script>
 document.getElementById('btnBack').addEventListener('click', function() {
     window.location.href = <?php echo json_encode($returnUrl); ?>;
 });
 </script>
-
 </body>
 </html>
