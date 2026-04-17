@@ -1,13 +1,17 @@
 <?php
 defined('GLPI_ROOT') or die('Sorry. You can\'t access this file directly.');
 
-function plugin_version_shellcmd(): array {
+/**
+ * Versione del plugin
+ */
+function plugin_version_shellcmd() {
    return [
-      'name'           => 'Shell Commands',
-      'version'        => '0.1.0',
-      'author'         => 'Mariano Benzi',
-      'license'        => 'GPL-2.0-or-later',
-      'requirements'   => [
+      'name'        => 'Shell Commands',
+      'version'     => '0.1.0',
+      'author'      => 'Mariano Benzi',
+      'license'     => 'GPL-2.0-or-later',
+      'homepage'    => 'https://github.com/inext68/shellcmd',
+      'requirements'=> [
          'glpi' => [
             'min' => '11.0.0'
          ]
@@ -15,42 +19,68 @@ function plugin_version_shellcmd(): array {
    ];
 }
 
-function plugin_init_shellcmd(): void {
+/**
+ * Init plugin (NESSUNA CLASSE QUI)
+ */
+function plugin_init_shellcmd() {
    global $PLUGIN_HOOKS;
+
    $PLUGIN_HOOKS['csrf_compliant']['shellcmd'] = true;
+
+   // lingua
    loadPluginLocale('shellcmd');
 }
 
-function plugin_shellcmd_install(): bool {
+/**
+ * Check prerequisiti
+ */
+function plugin_shellcmd_check_prerequisites() {
+   return true;
+}
+
+/**
+ * Check configurazione
+ */
+function plugin_shellcmd_check_config() {
+   return true;
+}
+
+/**
+ * INSTALLAZIONE (procedural pura)
+ */
+function plugin_shellcmd_install() {
    global $DB;
 
-   $query = <<<SQL
-CREATE TABLE IF NOT EXISTS `glpi_plugin_shellcmd_commands` (
-  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL,
-  `description` TEXT,
-  `pre_cmd` TEXT,
-  `command` TEXT NOT NULL,
-  `post_cmd` TEXT,
-  `allowed_itemtypes` TEXT NOT NULL,
-  `is_enabled` TINYINT(1) NOT NULL DEFAULT 1,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB
-  DEFAULT CHARSET=utf8mb4
-  COLLATE=utf8mb4_unicode_ci;
-SQL;
+   $query = "
+   CREATE TABLE IF NOT EXISTS `glpi_plugin_shellcmd_commands` (
+      `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `name` VARCHAR(255) NOT NULL,
+      `description` TEXT,
+      `pre_cmd` TEXT,
+      `command` TEXT NOT NULL,
+      `post_cmd` TEXT,
+      `allowed_itemtypes` TEXT NOT NULL,
+      `is_enabled` TINYINT(1) NOT NULL DEFAULT 1,
+      PRIMARY KEY (`id`)
+   ) ENGINE=InnoDB
+     DEFAULT CHARSET=utf8mb4
+     COLLATE=utf8mb4_unicode_ci
+   ";
 
-   $DB->queryOrDie($query, 'shellcmd install failed');
+   $DB->queryOrDie($query, 'shellcmd: table creation failed');
 
    return true;
 }
 
-function plugin_shellcmd_uninstall(): bool {
+/**
+ * DISINSTALLAZIONE
+ */
+function plugin_shellcmd_uninstall() {
    global $DB;
 
    $DB->queryOrDie(
       "DROP TABLE IF EXISTS `glpi_plugin_shellcmd_commands`",
-      'shellcmd uninstall failed'
+      'shellcmd: table drop failed'
    );
 
    return true;
