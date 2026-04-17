@@ -2,16 +2,16 @@
 defined('GLPI_ROOT') or die('Sorry. You can\'t access this file directly.');
 
 /**
- * Versione del plugin
+ * Plugin version
  */
 function plugin_version_shellcmd() {
    return [
-      'name'        => 'Shell Commands',
-      'version'     => '0.1.0',
-      'author'      => 'Mariano Benzi',
-      'license'     => 'GPL-2.0-or-later',
-      'homepage'    => 'https://github.com/inext68/shellcmd',
-      'requirements'=> [
+      'name'         => 'Shell Commands',
+      'version'      => '0.1.0',
+      'author'       => 'Mariano Benzi',
+      'license'      => 'GPL-2.0-or-later',
+      'homepage'     => 'https://github.com/inext68/shellcmd',
+      'requirements' => [
          'glpi' => [
             'min' => '11.0.0'
          ]
@@ -20,39 +20,37 @@ function plugin_version_shellcmd() {
 }
 
 /**
- * Init plugin (NESSUNA CLASSE QUI)
+ * Init plugin
+ * ⚠️ NESSUNA classe del plugin qui
  */
 function plugin_init_shellcmd() {
    global $PLUGIN_HOOKS;
 
    $PLUGIN_HOOKS['csrf_compliant']['shellcmd'] = true;
-
-   // lingua
-   loadPluginLocale('shellcmd');
 }
 
 /**
- * Check prerequisiti
+ * Prerequisites
  */
 function plugin_shellcmd_check_prerequisites() {
    return true;
 }
 
 /**
- * Check configurazione
+ * Config check
  */
 function plugin_shellcmd_check_config() {
    return true;
 }
 
 /**
- * INSTALLAZIONE (procedural pura)
+ * INSTALL
  */
 function plugin_shellcmd_install() {
    global $DB;
 
-   $query = "
-   CREATE TABLE IF NOT EXISTS `glpi_plugin_shellcmd_commands` (
+   $sql = "
+   CREATE TABLE `glpi_plugin_shellcmd_commands` (
       `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
       `name` VARCHAR(255) NOT NULL,
       `description` TEXT,
@@ -67,21 +65,25 @@ function plugin_shellcmd_install() {
      COLLATE=utf8mb4_unicode_ci
    ";
 
-   $DB->queryOrDie($query, 'shellcmd: table creation failed');
+   if (!$DB->tableExists('glpi_plugin_shellcmd_commands')) {
+      $DB->queryOrDie($sql, 'shellcmd: install failed');
+   }
 
    return true;
 }
 
 /**
- * DISINSTALLAZIONE
+ * UNINSTALL
  */
 function plugin_shellcmd_uninstall() {
    global $DB;
 
-   $DB->queryOrDie(
-      "DROP TABLE IF EXISTS `glpi_plugin_shellcmd_commands`",
-      'shellcmd: table drop failed'
-   );
+   if ($DB->tableExists('glpi_plugin_shellcmd_commands')) {
+      $DB->queryOrDie(
+         'DROP TABLE `glpi_plugin_shellcmd_commands`',
+         'shellcmd: uninstall failed'
+      );
+   }
 
    return true;
 }
