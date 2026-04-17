@@ -2,7 +2,7 @@
 defined('GLPI_ROOT') or die('Sorry. You can\'t access this file directly.');
 
 /**
- * Plugin version
+ * Versione plugin
  */
 function plugin_version_shellcmd() {
    return [
@@ -21,7 +21,6 @@ function plugin_version_shellcmd() {
 
 /**
  * Init plugin
- * ⚠️ NESSUNA classe del plugin qui
  */
 function plugin_init_shellcmd() {
    global $PLUGIN_HOOKS;
@@ -30,7 +29,7 @@ function plugin_init_shellcmd() {
 }
 
 /**
- * Prerequisites
+ * Prerequisiti
  */
 function plugin_shellcmd_check_prerequisites() {
    return true;
@@ -44,46 +43,70 @@ function plugin_shellcmd_check_config() {
 }
 
 /**
- * INSTALL
+ * INSTALLAZIONE (GLPI 11 CORRETTA)
  */
 function plugin_shellcmd_install() {
-   global $DB;
+   require_once GLPI_ROOT . '/src/Migration.php';
 
-   $sql = "
-   CREATE TABLE `glpi_plugin_shellcmd_commands` (
-      `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-      `name` VARCHAR(255) NOT NULL,
-      `description` TEXT,
-      `pre_cmd` TEXT,
-      `command` TEXT NOT NULL,
-      `post_cmd` TEXT,
-      `allowed_itemtypes` TEXT NOT NULL,
-      `is_enabled` TINYINT(1) NOT NULL DEFAULT 1,
-      PRIMARY KEY (`id`)
-   ) ENGINE=InnoDB
-     DEFAULT CHARSET=utf8mb4
-     COLLATE=utf8mb4_unicode_ci
-   ";
+   $migration = new Migration('0.1.0');
 
-   if (!$DB->tableExists('glpi_plugin_shellcmd_commands')) {
-      $DB->queryOrDie($sql, 'shellcmd: install failed');
+   // Tabella comandi
+   if (!$migration->tableExists('glpi_plugin_shellcmd_commands')) {
+      $migration->addTable('glpi_plugin_shellcmd_commands', [
+         'id' => [
+            'type'    => 'integer',
+            'value'   => null,
+            'null'    => false,
+            'auto'    => true
+         ],
+         'name' => [
+            'type'  => 'string',
+            'size'  => 255,
+            'null'  => false
+         ],
+         'description' => [
+            'type' => 'text'
+         ],
+         'pre_cmd' => [
+            'type' => 'text'
+         ],
+         'command' => [
+            'type' => 'text',
+            'null' => false
+         ],
+         'post_cmd' => [
+            'type' => 'text'
+         ],
+         'allowed_itemtypes' => [
+            'type' => 'text',
+            'null' => false
+         ],
+         'is_enabled' => [
+            'type'    => 'bool',
+            'value'   => 1,
+            'null'    => false
+         ]
+      ]);
    }
+
+   $migration->executeMigration();
 
    return true;
 }
 
 /**
- * UNINSTALL
+ * DISINSTALLAZIONE
  */
 function plugin_shellcmd_uninstall() {
-   global $DB;
+   require_once GLPI_ROOT . '/src/Migration.php';
 
-   if ($DB->tableExists('glpi_plugin_shellcmd_commands')) {
-      $DB->queryOrDie(
-         'DROP TABLE `glpi_plugin_shellcmd_commands`',
-         'shellcmd: uninstall failed'
-      );
+   $migration = new Migration('0.1.0');
+
+   if ($migration->tableExists('glpi_plugin_shellcmd_commands')) {
+      $migration->dropTable('glpi_plugin_shellcmd_commands');
    }
+
+   $migration->executeMigration();
 
    return true;
 }
