@@ -1,0 +1,51 @@
+<div class="shellcmd-tab">
+
+  {% if commands|length == 0 %}
+    <div class="alert alert-info">
+      {{ 'No commands available for this object.'|__({'domain':'shellcmd'}) }}
+    </div>
+  {% else %}
+
+    <div class="form-group">
+      <label for="shellcmd-command">
+        {{ 'Available commands'|__({'domain':'shellcmd'}) }}
+      </label>
+
+      <select id="shellcmd-command" class="form-control">
+        {% for cmd in commands %}
+          <option value="{{ cmd.getName() }}">
+            {{ cmd.getName() }} – {{ cmd.getDescription() }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-group mt-2">
+      <button
+        type="button"
+        id="shellcmd-execute"
+        class="btn btn-primary">
+        {{ 'Execute command'|__({'domain':'shellcmd'}) }}
+      </button>
+    </div>
+
+    <hr>
+
+    <pre id="shellcmd-output"
+         style="display:none;
+                height:300px;
+                overflow:auto;
+                background:#111;
+                color:#0f0;
+                padding:10px;">
+    </pre>
+
+  {% endif %}
+</div>
+
+<script>
+  window.GLPI_ITEMTYPE = '{{ itemtype }}';
+  window.GLPI_ITEMS_ID = {{ items_id }};
+  window.GLPI_CSRF_TOKEN = '{{ csrf_token() }}';
+</script>
+

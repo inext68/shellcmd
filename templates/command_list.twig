@@ -1,0 +1,33 @@
+<h1>{{ 'Shell Commands'|__({'domain':'shellcmd'}) }}</h1>
+
+<div class="mb-3">
+  <a class="btn btn-primary"
+     href="{{ CFG_GLPI.root_doc }}/plugins/shellcmd/front/command.form.php">
+    {{ 'Add command'|__({'domain':'shellcmd'}) }}
+  </a>
+</div>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>{{ 'Name'|__({'domain':'shellcmd'}) }}</th>
+      <th>{{ 'Description'|__({'domain':'shellcmd'}) }}</th>
+      <th>{{ 'Allowed objects'|__({'domain':'shellcmd'}) }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cmd in commands %}
+      <tr>
+        <td>{{ cmd.getName() }}</td>
+        <td>{{ cmd.getDescription() }}</td>
+        <td>{{ cmd.getAllowedItemtypes()|join(', ') }}</td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="3">
+          {{ 'No commands configured.'|__({'domain':'shellcmd'}) }}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

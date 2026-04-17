@@ -1,0 +1,32 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: shellcmd\n"
+"Language: it_IT\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Shell Commands"
+msgstr "Comandi Shell"
+
+msgid "Execute command"
+msgstr "Esegui comando"
+
+msgid "Configuration"
+msgstr "Configurazione"
+
+msgid "Available commands"
+msgstr "Comandi disponibili"
+
+msgid "No commands available for this object."
+msgstr "Nessun comando disponibile per questo oggetto."
+
+msgid "Add command"
+msgstr "Aggiungi comando"
+
+msgid "Allowed objects"
+msgstr "Oggetti consentiti"
+
+msgid "Command configuration"
+msgstr "Configurazione comando"
+
+msgid "No commands configured."
+msgstr "Nessun comando configurato."

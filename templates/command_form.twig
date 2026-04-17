@@ -1,0 +1,48 @@
+<h1>{{ 'Command configuration'|__({'domain':'shellcmd'}) }}</h1>
+
+<form method="post">
+
+  {{ csrf_token() }}
+
+  <div class="form-group">
+    <label>{{ 'Name'|__({'domain':'shellcmd'}) }}</label>
+    <input type="text" name="name" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>{{ 'Description'|__({'domain':'shellcmd'}) }}</label>
+    <input type="text" name="description" class="form-control">
+  </div>
+
+  <div class="form-group">
+    <label>{{ 'Pre-command'|__({'domain':'shellcmd'}) }}</label>
+    <input type="text" name="pre" class="form-control">
+  </div>
+
+  <div class="form-group">
+    <label>{{ 'Command'|__({'domain':'shellcmd'}) }}</label>
+    <input type="text" name="command" class="form-control" required>
+  </div>
+
+  <div class="form-group">
+    <label>{{ 'Post-command'|__({'domain':'shellcmd'}) }}</label>
+    <input type="text" name="post" class="form-control">
+  </div>
+
+  <div class="form-group">
+    <label>{{ 'Allowed objects'|__({'domain':'shellcmd'}) }}</label>
+    {% for type in itemtypes %}
+      <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               name="itemtypes[]"
+               value="{{ type }}">
+        <label class="form-check-label">{{ type }}</label>
+      </div>
+    {% endfor %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">
+    {{ 'Save'|__({'domain':'shellcmd'}) }}
+  </button>
+</form>
