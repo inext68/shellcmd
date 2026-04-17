@@ -1,63 +1,29 @@
 <?php
 defined('GLPI_ROOT') or die('Sorry. You can\'t access this file directly.');
 
-use GlpiPlugin\Shellcmd\Rights;
-
-/**
- * Inizializzazione plugin
- */
-function plugin_init_shellcmd(): void {
-   global $PLUGIN_HOOKS;
-
-   $PLUGIN_HOOKS['csrf_compliant']['shellcmd'] = true;
-
-   // Caricamento lingua
-   loadPluginLocale('shellcmd');
-}
-
-/**
- * Versione plugin
- */
 function plugin_version_shellcmd(): array {
    return [
       'name'           => 'Shell Commands',
       'version'        => '0.1.0',
       'author'         => 'Mariano Benzi',
       'license'        => 'GPL-2.0-or-later',
-      'homepage'       => 'https://github.com/inext68/shellcmd',
       'requirements'   => [
          'glpi' => [
-            'min' => '11.0.0',
-            'max' => '11.99.99'
+            'min' => '11.0.0'
          ]
       ]
    ];
 }
 
-/**
- * Verifica prerequisiti
- */
-function plugin_shellcmd_check_prerequisites(): bool {
-   return true;
+function plugin_init_shellcmd(): void {
+   global $PLUGIN_HOOKS;
+   $PLUGIN_HOOKS['csrf_compliant']['shellcmd'] = true;
+   loadPluginLocale('shellcmd');
 }
 
-/**
- * Verifica configurazione
- */
-function plugin_shellcmd_check_config(): bool {
-   return true;
-}
-
-/**
- * INSTALLAZIONE PLUGIN
- */
 function plugin_shellcmd_install(): bool {
    global $DB;
 
-   // Diritti
-   Rights::install();
-
-   // Tabella comandi
    $query = <<<SQL
 CREATE TABLE IF NOT EXISTS `glpi_plugin_shellcmd_commands` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -74,27 +40,17 @@ CREATE TABLE IF NOT EXISTS `glpi_plugin_shellcmd_commands` (
   COLLATE=utf8mb4_unicode_ci;
 SQL;
 
-   $DB->queryOrDie(
-      $query,
-      'shellcmd: unable to create commands table'
-   );
+   $DB->queryOrDie($query, 'shellcmd install failed');
 
    return true;
 }
 
-/**
- * DISINSTALLAZIONE PLUGIN
- */
 function plugin_shellcmd_uninstall(): bool {
    global $DB;
 
-   // Diritti
-   Rights::uninstall();
-
-   // Rimozione tabelle
    $DB->queryOrDie(
       "DROP TABLE IF EXISTS `glpi_plugin_shellcmd_commands`",
-      'shellcmd: unable to drop commands table'
+      'shellcmd uninstall failed'
    );
 
    return true;
