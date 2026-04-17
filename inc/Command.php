@@ -18,7 +18,7 @@ final class Command {
       string $description,
       string $command,
       array  $allowedItemtypes,
-      string $pre  = '',
+      string $pre = '',
       string $post = '',
       bool   $enabled = true
    ) {
@@ -31,80 +31,46 @@ final class Command {
       $this->enabled          = $enabled;
    }
 
-   /**
-    * Nome visualizzato
-    */
-   public function getName(): string {
-      return $this->name;
-   }
+   public function getName(): string { return $this->name; }
+   public function getDescription(): string { return $this->description; }
+   public function isEnabled(): bool { return $this->enabled; }
+   public function getAllowedItemtypes(): array { return $this->allowedItemtypes; }
 
-   /**
-    * Descrizione
-    */
-   public function getDescription(): string {
-      return $this->description;
-   }
-
-   /**
-    * Verifica se il comando è abilitato
-    */
-   public function isEnabled(): bool {
-      return $this->enabled;
-   }
-
-   /**
-    * Verifica se è eseguibile sull'oggetto
-    */
    public function isAllowedForItemtype(string $itemtype): bool {
       return CommandItemtype::isAllowed($itemtype, $this->allowedItemtypes);
    }
 
-   /**
-    * Ritorna la command line finale (stringa)
-    */
    public function build(array $context): string {
       if (!$this->enabled) {
          throw new \RuntimeException('Command disabled');
       }
 
-      $variables = Variable::resolve($context);
-
+      $vars = Variable::resolve($context);
       $parts = [];
 
       if ($this->pre !== '') {
-         $parts[] = Variable::substitute($this->pre, $variables);
+         $parts[] = Variable::substitute($this->pre, $vars);
       }
 
-      $parts[] = Variable::substitute($this->command, $variables);
+      $parts[] = Variable::substitute($this->command, $vars);
 
       if ($this->post !== '') {
-         $parts[] = Variable::substitute($this->post, $variables);
+         $parts[] = Variable::substitute($this->post, $vars);
       }
 
-      // Uniamo con spazio, trim finale
       return trim(implode(' ', $parts));
    }
 
    /**
-    * Comandi definiti (per ora hardcoded, DB-ready)
+    * Recupero comandi (DB-first)
+    *
+    * @return Command[]
     */
    public static function all(): array {
-      return [
-         new self(
-            name: __('Inventario TC', 'shellcmd'),
-            description: __('Esegue inventario ThinClient', 'shellcmd'),
-            command: '/usr/local/bin/tcinventory.sh',
-            allowedItemtypes: ['Computer'],
-            pre: '/usr/bin/env',
-            post: '--ip {IP} --name {NAME}'
-         ),
-      ];
-   }
-
-  /**
-    * Itemtype consentiti
-    */
-   public function getAllowedItemtypes(): array {
-      return $this->allowedItemtypes;
+      try {
+         return CommandDAO::getAll();
+      } catch (\Throwable) {
+         return [];
+      }
    }
 }
